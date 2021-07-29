@@ -16,4 +16,4 @@ const applyMiddleware = (server: Express) => {
   server.use(morgan("tiny"));
 }
 
-export default applyMiddleware
+export default applyMiddleware;
