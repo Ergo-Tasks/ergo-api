@@ -1,11 +1,18 @@
+import "reflect-metadata";
 import dotenv from "dotenv";
+
+import createConnection from "./typeorm";
 import server from "./server";
 
-dotenv.config();
+(async () => {
+  dotenv.config();
 
-const port = process.env.PORT || 5000;
-const hostname = process.env.HOSTNAME || 'localhost';
+  await createConnection();
 
-server.listen(port, () => {
-  console.log(`Server is running on ${hostname}:${port}`);
-});
+  const port = process.env.PORT || 5000;
+  const hostname = process.env.HOSTNAME || 'localhost';
+
+  server.listen(port, () => {
+    console.log(`Server is running on ${hostname}:${port}`);
+  });
+})();
