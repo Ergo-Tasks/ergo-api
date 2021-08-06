@@ -1,8 +1,8 @@
-import { NextFunction, Router, Request, Response } from "express";
+import { Router } from "express";
 import { User } from "../typeorm/entities/User"
 import bcrypt from "bcrypt"
-import { getRepository } from "typeorm";
 import jwt from "jsonwebtoken";
+import { restricted } from "../middleware/auth"
 
 const router = Router();
 
@@ -72,5 +72,13 @@ router.post('/login', async (req, res) => {
     res.status(401).json({message: "Bad request"});
   }
 });
+
+router.get('/:userId', restricted, (req, res) => {
+
+})
+
+router.put('/:userId', restricted, (req, res) => {
+
+})
 
 export default router;
