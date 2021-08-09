@@ -73,12 +73,61 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.get('/:userId', restricted, (req, res) => {
+router.get('/:userId', restricted, async (req, res) => {
+  
+  try {
 
-})
+    const { userId } = req.params;
+    const user = await User.findOneOrFail({
+      id: userId
+    });
 
-router.put('/:userId', restricted, (req, res) => {
+    //respond with more than user? http headers too for devs?
+    res.status(200).json({user});
 
-})
+  } catch (err) {
+    res.status(404).json({message: "Not found"});
+  }
+
+});
+
+router.put('/:userId', restricted, async (req, res) => {
+  
+  try {
+
+    const { userId } = req.params;
+    const user = await User.findOneOrFail({
+      id: userId
+    });
+    const body: User = req.body;
+
+    if (body.firstName !== undefined) {
+      user.firstName = body.firstName;
+    }
+
+    if (body.lastName !== undefined) {
+      user.lastName = body.lastName;
+    }
+
+    if (body.userName !== undefined) {
+      user.userName = body.userName;
+    }
+
+    if (body.email !== undefined) {
+      user.email = body.email;
+    }
+
+    if (body.password !== undefined) {
+      user.password = bcrypt.hashSync(body.password, 12);
+    }
+
+    await user.save();
+    res.status(200).send();
+
+  } catch (err) {
+    res.status(400).json({message: "Bad request"});
+  }
+
+});
 
 export default router;
