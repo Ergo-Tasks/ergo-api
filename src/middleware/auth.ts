@@ -1,4 +1,5 @@
 import jwt, { verify } from "jsonwebtoken";
+
 import { NextFunction, Request, Response, Router } from "express";
 import { User } from "../typeorm/entities/User";
 
