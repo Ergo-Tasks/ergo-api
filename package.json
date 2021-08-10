@@ -18,6 +18,10 @@
     "url": "https://github.com/Ergo-Tasks/ergo-api/issues"
   },
   "homepage": "https://github.com/Ergo-Tasks/ergo-api#readme",
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
