@@ -1,23 +1,14 @@
-import request from 'supertest'
-import { Express } from 'express';
+import supertest from 'supertest'
 
-import { createServer } from "../../server";
+import server from "../../server";
 
-let server: Express;
+const request = supertest(server);
 
 describe('GET /', () => {
-  beforeAll(async () => {
-    server = await createServer(2342);
-  });
+  it('Should return 200 and message that ergo api has started', async () => {
+    const res = await request.get('/');
 
-  it('Should return 200 and message that ergo api has started', done => {
-    request(server)
-      .get('/')
-      .expect(200)
-      .end((err, res) => {
-        if (err) return done(err);
-        expect(res.text).toBe("Ergo api running here");
-        done();
-      })
+    expect(res.status).toBe(200);
+    expect(res.text).toBe("Ergo api running here");
   })
 })
