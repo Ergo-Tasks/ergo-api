@@ -1,7 +1,8 @@
 import { Router } from "express";
-import { User } from "../typeorm/entities/User"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken";
+
+import { User } from "../typeorm/entities/User"
 import { restricted } from "../middleware/auth"
 
 const router = Router();
@@ -12,7 +13,10 @@ const router = Router();
  * -KIERAN
  */
 
-//creating post endpoint to create user
+/**
+ * Signup route that creates new User from our typeOrm entities, stores information and encrypts
+ * password then saves into db. 
+ */
 router.post('/', async (req, res) => {
   
   //try-catch to ensure data is being stored/saved properly
@@ -40,7 +44,10 @@ router.post('/', async (req, res) => {
 
 });
 
-//creating post endpoint to return auth token
+/**
+ * Login route that finds user by email given in request body, then using bcrypt- checks encrypted
+ * password with password in request body. If correct, signs jwt token to user.
+ */
 router.post('/login', async (req, res) => {
 
   //try-catch for error handling and for await functionality
@@ -64,65 +71,61 @@ router.post('/login', async (req, res) => {
       const secret = process.env.JWT_SECRET || "default";      
       const token = jwt.sign(payload, secret);
       res.status(200).json({token});
+
     } else {
-      throw new Error;
+        res.status(401).json({message: "Unauthorized"});
     }
     
   } catch (err) {
-    res.status(401).json({message: "Bad request"});
+    res.status(400).json({message: "Bad request"});
   }
 });
 
+/**
+ * Goes through restricted middleware to authenticate token. Gets user info by userId params,
+ * then returns user info as JSON body.
+ */
 router.get('/:userId', restricted, async (req, res) => {
   
   try {
 
     const { userId } = req.params;
-    const user = await User.findOneOrFail({
+    const user = await User.findOne({
       id: userId
     });
 
-    //respond with more than user? http headers too for devs?
     res.status(200).json({user});
 
   } catch (err) {
-    res.status(404).json({message: "Not found"});
+    res.status(404).json({message: "Bad Request"});
   }
 
 });
 
+/**
+ * Update route that finds user by the parameter id. Uses request body to update user fields,
+ * then saves to the database.
+ */
 router.put('/:userId', restricted, async (req, res) => {
-  
+
   try {
 
     const { userId } = req.params;
-    const user = await User.findOneOrFail({
-      id: userId
-    });
     const body: User = req.body;
+    const user = await User.findOneOrFail(userId);
+    //hasSync cannot be called without body.password existing, must create conditional.
+    const password = body.password ? bcrypt.hashSync(body.password, 12): user.password;
 
-    if (body.firstName !== undefined) {
-      user.firstName = body.firstName;
-    }
+    //Takes in object, and replaces/adds properties from second object passed in.
+    Object.assign(user, {
+      ...body,
+      password
+    })
 
-    if (body.lastName !== undefined) {
-      user.lastName = body.lastName;
-    }
-
-    if (body.userName !== undefined) {
-      user.userName = body.userName;
-    }
-
-    if (body.email !== undefined) {
-      user.email = body.email;
-    }
-
-    if (body.password !== undefined) {
-      user.password = bcrypt.hashSync(body.password, 12);
-    }
-
+    //.assign only updates the 'user' object, we still have to save to db.
     await user.save();
-    res.status(200).send();
+
+    res.status(200).json({user});
 
   } catch (err) {
     res.status(400).json({message: "Bad request"});
