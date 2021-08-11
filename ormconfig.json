@@ -16,6 +16,24 @@
     ]
   },
   {
+   "name": "test",
+   "type": "sqlite",
+   "database": "./testdb.sql",
+   "schemaCreate": true,
+   "dropSchema": true,
+   "synchronize": true,
+   "logging": false,
+   "entities": [
+      "src/typeorm/entities/**/*.ts"
+   ],
+   "migrations": [
+      "src/typeorm/migrations/**/*.ts"
+   ],
+   "subscribers": [
+      "src/typeorm/subscribers/**/*.ts"
+   ]
+  },
+  {
     "name": "production",
     "type": "postgres",
     "url": "unknown",
