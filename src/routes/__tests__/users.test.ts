@@ -1,8 +1,10 @@
 import supertest from 'supertest'
+import { NextFunction, Request, Response, Router } from "express";
 
 import createConnection from "../../typeorm";
 import server from "../../server";
 import { User } from "../../typeorm/entities/User";
+import { restricted } from "../../middleware/auth"
 
 const request = supertest(server);
 
@@ -96,6 +98,14 @@ describe('User authentication routes', () => {
     })
 
   })
+
+  // describe('GET /api/users/:userId', () => {
+
+    // it('Should return status 200 with user information in JSON body', async () => {
+
+    // })
+
+  // })
 
 })
 
