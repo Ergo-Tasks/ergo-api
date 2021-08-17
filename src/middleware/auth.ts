@@ -5,7 +5,8 @@ import { User } from "../typeorm/entities/User";
 
 
 //No generic type for jwt.verify, so we are using interface
-interface jwtPayload {
+//exporting for jwt mock.
+export interface jwtPayload {
   email: string,
   id: string
 }
@@ -27,6 +28,7 @@ export function restricted(req: Request, res: Response, next: NextFunction) {
   const secret = process.env.JWT_SECRET || "default";
     
   if (token) {
+
     //verifying token with passed in secret and callback function to handle err cases and decoded token.
     jwt.verify(token, secret, function (err, decoded) {
       const decodedJwt = decoded as jwtPayload;
@@ -38,6 +40,7 @@ export function restricted(req: Request, res: Response, next: NextFunction) {
         //call next because token was verified, moving to next middleware
         next();
       }
+      
     }); 
   } else {
     res.status(400).json({message: "Bad request, please provide token in authorization headers"});
