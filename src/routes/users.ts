@@ -87,16 +87,14 @@ router.post('/login', async (req, res) => {
  */
 router.get('/:userId', restricted, async (req, res) => {
   
-  try {
+  const { userId } = req.params;
+  const user = await User.findOne({
+    id: userId
+  });
 
-    const { userId } = req.params;
-    const user = await User.findOne({
-      id: userId
-    });
-
+  if (user) {
     res.status(200).json({user});
-
-  } catch (err) {
+  } else {
     res.status(404).json({message: "Bad Request"});
   }
 
@@ -124,13 +122,11 @@ router.put('/:userId', restricted, async (req, res) => {
 
     //.assign only updates the 'user' object, we still have to save to db.
     await user.save();
-
     res.status(200).json({user});
-
   } catch (err) {
     res.status(400).json({message: "Bad request"});
   }
-
+  
 });
 
 export default router;
