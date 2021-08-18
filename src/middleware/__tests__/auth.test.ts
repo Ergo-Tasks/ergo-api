@@ -52,12 +52,11 @@ describe('Token authentication middleware', () => {
   });
 
   it('Should call next function', () => {
-
+    
     mockRequest = {
       headers: {authorization: 'valid'},
       params: {userId: '1'}
-  }
-    
+  }   
     restricted(mockRequest as Request, mockResponse as Response, nextFunction);
 
     expect(nextFunction).toBeCalled();
@@ -70,10 +69,9 @@ describe('Token authentication middleware', () => {
     mockRequest = {
       headers: {authorization: 'invalid'},
       params: {userId: '2'}
-  }
-    
+  }    
     restricted(mockRequest as Request, mockResponse as Response, nextFunction);
-    
+
     expect(resultStatus).toBe(400);
     expect(resultJson).toEqual({message: 'Cannot parse passed in authorization token'});
 
@@ -88,6 +86,20 @@ describe('Token authentication middleware', () => {
   }
     restricted(mockRequest as Request, mockResponse as Response, nextFunction);
 
+    expect(resultStatus).toBe(401);
+    expect(resultJson).toEqual({message: 'You are not authorized to view this information'});
+
+  })
+
+  it('Should call status 401 due to missing userId', () => {
+
+    mockRequest = {
+      headers: {authorization: 'valid'},
+      params: {}
+    }
+
+    restricted(mockRequest as Request, mockResponse as Response, nextFunction);
+    
     expect(resultStatus).toBe(401);
     expect(resultJson).toEqual({message: 'You are not authorized to view this information'});
 
