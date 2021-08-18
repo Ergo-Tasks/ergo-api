@@ -4,7 +4,13 @@ import { NextFunction, Request, Response, Router } from "express";
 import createConnection from "../../typeorm";
 import server from "../../server";
 import { User } from "../../typeorm/entities/User";
-import { restricted } from "../../middleware/auth"
+import { getMaxListeners } from 'process';
+
+jest.mock('../../middleware/auth', () => ({
+  restricted: (req: Request, res: Response, nextFunction: NextFunction) => {
+    nextFunction();
+  }
+}));
 
 const request = supertest(server);
 
@@ -61,52 +67,119 @@ describe('User authentication routes', () => {
 
   describe('POST /api/users/login', () => {
 
-    const user = {
+    const userExample = {
       email: "jacob139@gmail.com",
       password: "zoowaponatoofopguwap"
     }
     
     it('Should return status 200 and token in JSON object', async () => {
       const res = await request.post('/api/users/login')
-        .send(user);
+        .send(userExample);
       expect(res.status).toBe(200);
       expect(res.text).toMatch("token");
     })
 
     it('Should return status 400 because email sent in request body does not exist', async () => {
       const res = await request.post('/api/users/login')
-        .send({...user, email: "wrongemail@gmail.com"});
+        .send({...userExample, email: "wrongemail@gmail.com"});
       expect(res.status).toBe(400);
     })
 
     it('Should return status 400 due to undefined email in request body', async () => {
       const res = await request.post('/api/users/login')
-        .send(user.password);
+        .send(userExample.password);
       expect(res.status).toBe(400);
     })
 
     it('Should return status 400 due to undefined password in request body', async () => {
       const res = await request.post('/api/users/login')
-        .send(user.email);
+        .send(userExample.email);
       expect(res.status).toBe(400);
     })
 
     it('Should return status 401 due to incorrect password in request body', async () => {
       const res = await request.post('/api/users/login')
-        .send({...user, password: "wrongPassword"});
+        .send({...userExample, password: "wrongPassword"});
       expect(res.status).toBe(401);
     })
 
   })
 
-  // describe('GET /api/users/:userId', () => {
+  describe('GET /api/users/:userId', () => {
 
-    // it('Should return status 200 with user information in JSON body', async () => {
+    it('Should return status 200 with user information in JSON body', async () => {     
+      const testUser = await User.findOneOrFail({
+        email: userExample.email
+      });
+      const res = await request.get(`/api/users/${testUser.id}`);
+      const expectedResponse = JSON.stringify({user: testUser});
 
-    // })
+      expect(res.status).toBe(200); 
+      expect(res.text).toBe(expectedResponse);
+    });
 
-  // })
+    it('Should return status 404 due to user not being found', async () => {
+      const res = await request.get('/api/users/falseId');
 
+      expect(res.status).toBe(404); 
+    });
+  });
+
+  describe('PUT /api/users/:userId', () => {
+    
+    it('Should return status 200 with updated user information in JSON body', async () => {
+      const testUser = await User.findOneOrFail({
+        email: userExample.email
+      });
+      const updatedUser = {
+        userName: 'bbGamer'
+      }
+      const res = await request.put(`/api/users/${testUser.id}`)
+        .send(updatedUser);
+      const expectedResponse = JSON.stringify({user: {
+        ...testUser,
+        ...updatedUser
+      }})
+
+      expect(res.status).toBe(200);
+      expect(res.text).toBe(expectedResponse);
+    });
+
+    it('Should return status 200 with updated password in JSON body', async () => {
+      const testUser = await User.findOneOrFail({
+        email: userExample.email
+      });
+      const res = await request.put(`/api/users/${testUser.id}`)
+        .send({password: 'updatedPassword'});
+      
+      expect(res.status).toBe(200);
+      expect(res.body.user.password).not.toBe(testUser.password);
+    })
+
+    it('Should return status 400 due to user not being found', async () => {
+      const res = await request.put('/api/users/falseId');
+
+      expect(res.status).toBe(400);
+    });
+
+    it('Should return status 400 due to user attempting to update email to non-unique email', async () => {
+      const secondUser = new User;
+      secondUser.firstName = "Jacob",
+      secondUser.lastName = "Anderson",
+      secondUser.userName = "jacob139",
+      secondUser.email = 'second@gmail.com';
+      secondUser.password = "zoowaponatoofopguwap"     
+      await secondUser.save();
+
+      const testUser = await User.findOneOrFail({
+        email: userExample.email
+      });
+      const res = await request.put(`/api/users/${testUser.id}`)
+        .send({email: secondUser.email});
+
+      expect(res.status).toBe(400);
+    });
+  });
 })
 
 
