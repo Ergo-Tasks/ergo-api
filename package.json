@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
+    "build": "tsc",
     "test": "jest",
     "devtest": "jest --watch",
     "devstart": "nodemon --exec ts-node src/index.ts"
