@@ -1,8 +1,5 @@
-import { NextFunction, Request, response, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 
-import createConnection from "../../typeorm";
-import server from "../../server";
-import { User } from "../../typeorm/entities/User";
 import { restricted } from "../../middleware/auth"
 
 describe('Token authentication middleware', () => {

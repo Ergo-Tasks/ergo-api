@@ -1,10 +1,9 @@
-import supertest from 'supertest'
-import { NextFunction, Request, Response, Router } from "express";
+import supertest from 'supertest';
+import { NextFunction, Request, Response } from "express";
 
 import createConnection from "../../typeorm";
 import server from "../../server";
 import { User } from "../../typeorm/entities/User";
-import { getMaxListeners } from 'process';
 
 jest.mock('../../middleware/auth', () => ({
   restricted: (req: Request, res: Response, nextFunction: NextFunction) => {

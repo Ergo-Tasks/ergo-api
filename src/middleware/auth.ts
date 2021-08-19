@@ -1,11 +1,7 @@
-import jwt, { verify } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+import { NextFunction, Request, Response } from "express";
 
-import { NextFunction, Request, Response, Router } from "express";
-import { User } from "../typeorm/entities/User";
-
-
-//No generic type for jwt.verify, so we are using interface
-//exporting for jwt mock.
+//exporting for jwt interface
 export interface jwtPayload {
   email: string,
   id: string
