@@ -1,10 +1,14 @@
-import { Column, Entity, BaseEntity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, BaseEntity, PrimaryGeneratedColumn, OneToMany, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Task } from "./Task";
 
 @Entity()
 export class User extends BaseEntity{
 
   @PrimaryGeneratedColumn("uuid")
   id?: string;
+
+  @CreateDateColumn()
+  createdDate?: Date;
 
   @Column()
   firstName!: string;
@@ -22,5 +26,7 @@ export class User extends BaseEntity{
     unique: true
   })
   email!: string;
+
+  @OneToMany((type) => Task, task => task.id) tasks?: Task[];
 
 }
