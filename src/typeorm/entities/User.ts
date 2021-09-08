@@ -27,6 +27,7 @@ export class User extends BaseEntity{
   })
   email!: string;
 
-  @OneToMany((type) => Task, task => task.id) tasks?: Task[];
+  @OneToMany((type) => Task, task => task.id) 
+  tasks?: Task[];
 
 }
