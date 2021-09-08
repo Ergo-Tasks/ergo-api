@@ -1,4 +1,4 @@
-import { Column, Entity, BaseEntity, PrimaryGeneratedColumn, ManyToMany } from "typeorm";
+import { Column, Entity, BaseEntity } from "typeorm";
 
 @Entity()
 export class Tag extends BaseEntity{
