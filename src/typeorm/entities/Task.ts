@@ -2,6 +2,15 @@ import { Column, Entity, BaseEntity, PrimaryGeneratedColumn, ManyToOne, ManyToMa
 import { Tag } from "./Tag";
 import { User } from "./User"
 
+enum DaysOfTheWeek {    //export?
+  SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY
+}
+
+interface IDate {       //export?
+  day: DaysOfTheWeek,
+  time: number
+}
+
 @Entity()
 export class Task extends BaseEntity{
 
@@ -17,13 +26,20 @@ export class Task extends BaseEntity{
   @Column()
   isRecursive!: boolean;
 
+  @Column({type: 'array' })
+  recTaskDate?: IDate[];
+
   @Column({ type: 'date' })
-  date!: string;
+  taskDate?: String;
   
   @Column({ type: 'timestamptz' })
-  timestamp!: Date;
+  taskTimestamp?: Date;
   
-  @ManyToOne((type) => User, user => user.tasks) user?: User;
-  @ManyToMany((type) => Tag) @JoinTable() tags?: Tag[]; 
+  @ManyToOne((type) => User, user => user.tasks) 
+  user!: User;
+
+  @ManyToMany((type) => Tag) 
+  @JoinTable() 
+  tags?: Tag[]; 
 
 }
