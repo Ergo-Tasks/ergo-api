@@ -1,12 +1,13 @@
-import { Column, Entity, BaseEntity, PrimaryGeneratedColumn, ManyToOne, ManyToMany, JoinTable } from "typeorm";
+import { Column, Entity, BaseEntity, PrimaryGeneratedColumn, ManyToOne, ManyToMany, JoinTable, OneToMany } from "typeorm";
 import { Tag } from "./Tag";
 import { User } from "./User"
+import { TaskCompletion } from "./TaskCompletion";
 
-enum DaysOfTheWeek {    //export?
+export enum DaysOfTheWeek {
   SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY
 }
 
-interface IDate {       //export?
+export interface IDate { 
   day: DaysOfTheWeek,
   time: number
 }
@@ -30,16 +31,21 @@ export class Task extends BaseEntity{
   recTaskDate?: IDate[];
 
   @Column({ type: 'date' })
-  taskDate?: String;
+  taskDate?: string;
   
   @Column({ type: 'timestamptz' })
   taskTimestamp?: Date;
   
-  @ManyToOne((type) => User, user => user.tasks) 
+  //first param sets the type of the entity being related to, second param sets where the relation is pointing to.
+  @OneToMany(() => TaskCompletion, taskCompletion => taskCompletion.task)
+  taskCompletion?: TaskCompletion[];
+
+  @ManyToOne(() => User, user => user.tasks) 
   user!: User;
 
-  @ManyToMany((type) => Tag) 
+  @ManyToMany(() => Tag) 
   @JoinTable() 
   tags?: Tag[]; 
+
 
 }
