@@ -3,6 +3,8 @@ import { NextFunction, Request, Response } from "express";
 
 import { createConnection } from 'typeorm';
 import { Task } from '../../typeorm/entities/Task';
+import { DaysOfTheWeek,  IDate} from '../../typeorm/entities/Task';
+
 
 import server from "../../server";
 
@@ -18,10 +20,10 @@ describe('Task routes', () => {
     taskName: 'Workout',
     taskDescription: 'Chest, back, shoulders, legs, arms',
     isRecursive: true,
-    recTaskDate: [{day: 'MONDAY', time: 1315},{day: 'THURSDAY', time: 900}] //not sure if this is correct syntax
+    recTaskDate: [{day: DaysOfTheWeek.MONDAY, time: 1315}, {day: DaysOfTheWeek.THURSDAY, time: 900}] //not sure if this is correct syntax
   }
 
-  describe('POST /api/tasks/', () => {
+  describe('POST /api/tasks/:userId', () => {
 
     it('Should return status 201', async () => {
       const res = await request.post('/api/tasks/')
