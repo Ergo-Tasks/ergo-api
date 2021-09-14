@@ -1,6 +1,8 @@
 import { Column, Entity, BaseEntity, PrimaryGeneratedColumn, OneToMany, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Task } from "./Task";
 
+export const userRelations = ['tasks'];
+
 @Entity()
 export class User extends BaseEntity{
 
@@ -27,7 +29,7 @@ export class User extends BaseEntity{
   })
   email!: string;
 
-  @OneToMany((type) => Task, task => task.id) 
-  tasks?: Task[];
+  @OneToMany(() => Task, task => task.user) 
+  tasks!: Task[];
 
 }
