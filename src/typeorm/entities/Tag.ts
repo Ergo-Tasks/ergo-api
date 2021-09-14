@@ -1,9 +1,9 @@
-import { Column, Entity, BaseEntity } from "typeorm";
+import { Column, Entity, BaseEntity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Tag extends BaseEntity{
 
-  @Column("uuid")
+  @PrimaryGeneratedColumn("uuid")
   id?: string;
 
   @Column()
