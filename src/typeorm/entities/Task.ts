@@ -1,7 +1,7 @@
 import { Column, Entity, BaseEntity, PrimaryGeneratedColumn, ManyToOne, ManyToMany, JoinTable, OneToMany } from "typeorm";
 import { Tag } from "./Tag";
 import { User } from "./User"
-import { TaskCompletion } from "./TaskCompletion";
+import { TaskFinished } from "./TaskFinished";
 
 export enum DaysOfTheWeek {
   SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY
@@ -27,18 +27,16 @@ export class Task extends BaseEntity{
   @Column()
   isRecursive!: boolean;
 
-  @Column({type: 'array' })
+  @Column('simple-array', { nullable: true })
   recTaskDate?: IDate[];
 
-  @Column({ type: 'date' })
-  taskDate?: string;
-  
-  @Column({ type: 'timestamptz' })
-  taskTimestamp?: Date;
+  @Column({ nullable: true })
+  taskDate?: number;
   
   //first param sets the type of the entity being related to, second param sets where the relation is pointing to.
-  @OneToMany(() => TaskCompletion, taskCompletion => taskCompletion.task)
-  taskCompletion?: TaskCompletion[];
+  //switch to !:
+  @OneToMany(() => TaskFinished, taskFinished => taskFinished.task)
+  TaskFinished?: TaskFinished[];
 
   @ManyToOne(() => User, user => user.tasks) 
   user!: User;
@@ -46,6 +44,5 @@ export class Task extends BaseEntity{
   @ManyToMany(() => Tag) 
   @JoinTable() 
   tags?: Tag[]; 
-
 
 }
