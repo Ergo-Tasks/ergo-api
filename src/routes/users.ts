@@ -30,6 +30,7 @@ router.post('/', async (req, res) => {
     user.lastName = body.lastName;
     user.userName = body.userName;
     user.email = body.email;
+    user.tasks = [];
     //hashSync method takes in string, and number for salt. Returns hashed password string.
     user.password = bcrypt.hashSync(body.password, 12);
 
@@ -39,7 +40,7 @@ router.post('/', async (req, res) => {
     res.status(201).send();
 
   } catch(err) {
-    res.status(400).json({message: "Bad request"});
+    res.status(400).json({message: "Bad Request"});
   }
 
 });
@@ -77,7 +78,7 @@ router.post('/login', async (req, res) => {
     }
     
   } catch (err) {
-    res.status(400).json({message: "Bad request"});
+    res.status(400).json({message: "Bad Request"});
   }
 });
 
@@ -124,7 +125,7 @@ router.put('/:userId', restricted, async (req, res) => {
     await user.save();
     res.status(200).json({user});
   } catch (err) {
-    res.status(400).json({message: "Bad request"});
+    res.status(400).json({message: "Bad Request"});
   }
   
 });
