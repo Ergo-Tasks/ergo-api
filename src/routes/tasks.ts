@@ -38,14 +38,20 @@ router.post('/:userId', restricted, async (req, res) => {
 });
 
 router.get('/:userId', restricted, async (req, res) => {
+  // { recursiveTasks: [{ ... }], nonRecursiveTasks: [{...}] }
 
-  try {
+});
 
-    const { userId } = req.params;
-    const user = User.findOneOrFail({id: userId});
+router.get('/:userId/:taskId', restricted, async (req, res) => {
 
-  } catch (err) {
+  const { userId, taskId } = req.params;
+  const user = await User.findOne({ id: userId });
+  const task = await Task.findOne({ id: taskId });
 
+  if (user && task) {
+    res.status(200).json({ task });
+  } else {
+    res.status(404).json({ message: 'Not Found' });
   }
 
 });
