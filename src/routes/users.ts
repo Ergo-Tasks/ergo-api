@@ -96,7 +96,7 @@ router.get('/:userId', restricted, async (req, res) => {
   if (user) {
     res.status(200).json({user});
   } else {
-    res.status(404).json({message: "Bad Request"});
+    res.status(404).json({message: 'Not Found'});
   }
 
 });
