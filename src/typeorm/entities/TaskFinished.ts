@@ -8,10 +8,7 @@ export class TaskFinished extends BaseEntity{
   id?: string
 
   @Column()
-  completionDate!: number
-
-  @Column()
-  completionTime!: number
+  completionTimestamp!: number
   
   @ManyToOne(() => Task, task => task.TaskFinished)
   task?: Task[];
