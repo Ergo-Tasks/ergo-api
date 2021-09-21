@@ -91,7 +91,7 @@ describe('Task routes', () => {
 
   describe('GET /api/tasks/:userId', () => {
 
-    it('Should return status 200 with task information in JSON body', async () => {
+    it('Should return status 200 with all user\'s tasks', async () => {
       const res = await request.get(`/api/tasks/${dbUser.id}`);
       const user = await User.findOneOrFail({email: userExample.email});
       const expectedResponse = JSON.stringify(user.tasks);
@@ -100,6 +100,62 @@ describe('Task routes', () => {
       expect(res.text).toBe(expectedResponse);
     });
 
+    it('Should return status 200 with user\'s completed tasks under one tag', async () => {
+      
+    });
+
+    it('Should return status 200 with all user\'s in-progress tasks', async () => {
+
+    });
+
+    it('Should return status 200 with all user\'s tasks under multiple tags, between two dates', async () => {
+      
+    });
+
+    it('Should return status 400 due to searching for tasks with an invalid tag', async () => {
+
+    })
+
+    it('')
+    
+    it('Should return status 404 due to User not being found', async () => {
+      const res = await request.get(`/api/tasks/falseUserId/`);
+      
+      expect(res.status).toBe(404);
+    });
+
+
+  });
+
+  describe('GET /api/tasks/:userId/:taskId', () => {
+
+    it('Should return status 200 with task information in JSON body', async () => {
+      const task = await Task.findOneOrFail({ taskName: taskExample.taskName });
+      const res = await request.get(`/api/tasks/${dbUser.id}/${task.id}`);
+      const expectedResponse = JSON.stringify({task});
+
+      expect(res.status).toBe(200);
+      expect(res.text).toBe(expectedResponse);
+    });
+    
+    it('Should return status 404 due to Task not being found', async () => {
+      const res = await request.get(`/api/tasks/${dbUser.id}/falseTaskId`);
+      
+      expect(res.status).toBe(404);
+    });
+
+    it('Should return status 404 due to User not being found', async () => {
+      const task = await Task.findOneOrFail({ taskName: taskExample.taskName });
+      const res = await request.get(`/api/tasks/falseUserId/${task.id}`);
+      
+      expect(res.status).toBe(404);
+    });
+
   });
 
 });
+
+      // wed -> friday 
+      // wed sept 15 -> friday sept 17
+      // { recursiveTasks: [{ ... }], nonRecursiveTasks: [{...}] }
+      // const recursiveTasks = nonRecursiveTasks.filter((t) => t.isRecursive);
