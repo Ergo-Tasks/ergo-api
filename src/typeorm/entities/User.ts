@@ -1,6 +1,7 @@
 import { Column, Entity, BaseEntity, PrimaryGeneratedColumn, OneToMany, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Task } from "./Task";
 
+//for task tests, to findOne user where relation: userRelations, an array of 'tasks'
 export const userRelations = ['tasks'];
 
 @Entity()
