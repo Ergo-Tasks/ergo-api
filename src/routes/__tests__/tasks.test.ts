@@ -1,11 +1,12 @@
 import supertest from 'supertest';
 import { NextFunction, Request, Response } from "express";
 
+import server from "../../server";
 import createConnection from '../../typeorm';
 import { Task } from '../../typeorm/entities/Task';
+import { Tag } from '../../typeorm/entities/Tag'
+import { TaskFinished } from '../../typeorm/entities/TaskFinished';
 import { DaysOfTheWeek,  IDate} from '../../typeorm/entities/Task';
-
-import server from "../../server";
 import { User, userRelations } from '../../typeorm/entities/User';
 
 jest.mock('../../middleware/auth', () => ({
@@ -73,7 +74,6 @@ describe('Task routes', () => {
         .send({...taskExample, isRecursive: true});
       const expectedResponse = JSON.stringify({message: 'Bad Request: Missing date field(s)'})
 
-
       expect(res.status).toBe(400);
       expect(res.text).toBe(expectedResponse);
     });
@@ -93,7 +93,7 @@ describe('Task routes', () => {
 
     it('Should return status 200 with all user\'s tasks', async () => {
       const res = await request.get(`/api/tasks/${dbUser.id}`);
-      const user = await User.findOneOrFail({email: userExample.email});
+      const user = await User.findOneOrFail({ where: {email: dbUser.email}, relations: userRelations });
       const expectedResponse = JSON.stringify(user.tasks);
 
       expect(res.status).toBe(200);
@@ -101,29 +101,60 @@ describe('Task routes', () => {
     });
 
     it('Should return status 200 with user\'s completed tasks under one tag', async () => {
+      const task1 = await request.post(`api/tasks/${dbUser.id}`)
+        .send({...taskExample, taskName: 'task1', tags: ['workout']});
+      const task2 = await request.post(`api/tasks/${dbUser.id}`)
+        .send({...taskExample, taskName: 'task2', tags: ['workout']});
+        
+      const res = await request.get(`api/tasks/${dbUser.id}?tags=workout`);
+      const user = await User.findOneOrFail({email: userExample.email});
       
+      const expectedResponse = JSON.stringify(user.tasks);
+      
+      expect(res.status).toBe(200);
+      expect(res.text).toBe(expectedResponse);
     });
 
     it('Should return status 200 with all user\'s in-progress tasks', async () => {
-
+      const res = await request.get(`/api/tasks/${dbUser.id}`);
+      const user = await User.findOneOrFail({email: userExample.email});
+      //Need to find a way to deconstruct user's tasks, then access taskFinished field per each task. (loop?)
+      const userTasks = {...user.tasks};
+      
+      const expectedResponse = JSON.stringify(userTasks);
     });
 
     it('Should return status 200 with all user\'s tasks under multiple tags, between two dates', async () => {
-      
+      const task1 = await request.post(`/api/tasks/${dbUser.id}`)
+        .send({...taskExample, tags: ['workingout', 'tough', 'mustDo\'s']});
+      const task2 = await request.post(`/api/tasks/${dbUser.id}`)
+        .send({...taskExample, taskDate: 1628913000, tags: ['workingout', 'tough', 'mustDo\'s']});
+      const task3 = await request.post(`/api/tasks/${dbUser.id}`)
+        .send({...taskExample, taskDate: 1828912900, tags: ['workingout', 'tough', 'mustDo\'s']});
+      const res = await request.get(`/api/tasks/${dbUser.id}?tags=workingout+tough+mustDo\'s&taskDate[gte]=1628912900&taskDate[lte]=1628913941`);
+      const user = await User.findOneOrFail({email: userExample.email});
+      const expectedResponse = JSON.stringify(user.tasks);
+
+      expect(res.status).toBe(200);
+      expect(res.text).toBe(expectedResponse);
     });
 
     it('Should return status 400 due to searching for tasks with an invalid tag', async () => {
+      const res = await request.get(`/api/tasks/${dbUser.id}/tags=invalidtag`);
+      const user = await User.findOneOrFail({email: userExample.email});
+      const expectedResponse = JSON.stringify(user.tasks);
 
+      expect(res.status).toBe(400);
+      expect(res.text).toBe(expectedResponse);
     })
 
     //it('')
-    
+
     it('Should return status 404 due to User not being found', async () => {
       const res = await request.get(`/api/tasks/falseUserId/`);
       
       expect(res.status).toBe(404);
     });
-
 
   });
 
@@ -181,7 +212,7 @@ describe('Task routes', () => {
     })
 
     it('Should return status 200 adding task to TaskFinished entity to mark completion', async () => {
-
+      
     })
 
     it('Should return status 200 with task completion being un-done', async () => {
@@ -206,58 +237,37 @@ describe('Task routes', () => {
   describe('DELETE /api/tasks/:taskId', () => {
     
     it('Should return status 200 successfully deleting a non-recurrsive task', async () => {
+      const task = await Task.findOneOrFail({ taskName: taskExample.taskName });
+      const res = await request.delete(`/api/tasks/${task.id}`)
+        .send();
+      const task2 = await Task.findOneOrFail({ taskName: taskExample.taskName });
 
+      expect(res.status).toBe(200);
+      expect(task2).toBe(undefined);
     })
 
     it('Should return status 200 successfully deleting a recurrsive task', async () => {
-      
+      const task = await Task.findOneOrFail({ taskName: recTaskExample.taskName });
+      const res = await request.delete(`/api/tasks/${task.id}`)
+        .send();
+      const task2 = await Task.findOneOrFail({ taskName: recTaskExample.taskName });
+
+      expect(res.status).toBe(200);
+      expect(task2).toBe(undefined);
     })
 
     it('Should return status 400 due to invalid task Id', async () => {
+      const res = await request.delete(`/api/tasks/falseId`)
+        .send();
       
-    })
-
-    it('Should return status 400 due to task failing to delete?', async () => {
-
+      expect(res.status).toBe(400);
     })
 
   })
-    it('Should return status 200 with all user\'s tasks', async () => {
-      const res = await request.get(`/api/tasks/${dbUser.id}`);
-      const user = await User.findOneOrFail({email: userExample.email});
-      const expectedResponse = JSON.stringify(user.tasks);
 
-      expect(res.status).toBe(200);
-      expect(res.text).toBe(expectedResponse);
-    });
+});
 
-    it('Should return status 200 with user\'s completed tasks under one tag', async () => {
-      
-    });
-
-    it('Should return status 200 with all user\'s in-progress tasks', async () => {
-
-    });
-
-    it('Should return status 200 with all user\'s tasks under multiple tags, between two dates', async () => {
-      
-    });
-
-    it('Should return status 400 due to searching for tasks with an invalid tag', async () => {
-
-    })
-
-    it('')
-    
-    it('Should return status 404 due to User not being found', async () => {
-      const res = await request.get(`/api/tasks/falseUserId/`);
-      
-      expect(res.status).toBe(404);
-    });
-
-  });
-
-      // wed -> friday 
-      // wed sept 15 -> friday sept 17
-      // { recursiveTasks: [{ ... }], nonRecursiveTasks: [{...}] }
-      // const recursiveTasks = nonRecursiveTasks.filter((t) => t.isRecursive);
+    // wed -> friday 
+    // wed sept 15 -> friday sept 17
+    // { recursiveTasks: [{ ... }], nonRecursiveTasks: [{...}] }
+    // const recursiveTasks = nonRecursiveTasks.filter((t) => t.isRecursive);
