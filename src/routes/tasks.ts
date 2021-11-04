@@ -39,6 +39,25 @@ router.post('/:userId', restricted, async (req, res) => {
 
 router.get('/:userId', restricted, async (req, res) => {
   // { recursiveTasks: [{ ... }], nonRecursiveTasks: [{...}] }
+  //tags=value+value+value&taskDate=value&taskFinished=value
+
+  const { tags, taskDate, taskFinished } = req.query;
+  const { userId } = req.params;
+  const user = await User.findOne({
+    id: userId
+  });
+
+  console.log(tags);
+  
+  if (user && (tags || taskDate || taskFinished))  {
+    const filteredTasks = await Task.find({ relations: ['tags', 'taskDate', 'taskFinished'] });
+    res.status(200).json({ filteredTasks });
+  } else if (user) {
+    const allTasks = await Task.find({ relations: [] })
+    res.status(200).json(allTasks)
+  } else {
+    res.status(400).json({message: 'Bad Request'});
+  }
 
 });
 
