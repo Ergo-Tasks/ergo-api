@@ -10,7 +10,7 @@ export class TaskFinished extends BaseEntity{
   @Column()
   completionTimestamp!: number
   
-  @ManyToOne(() => Task, task => task.TaskFinished)
+  @ManyToOne(() => Task, task => task.taskFinished)
   task?: Task[];
 
 }
