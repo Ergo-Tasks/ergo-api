@@ -3,6 +3,8 @@ import { Tag } from "./Tag";
 import { User } from "./User"
 import { TaskFinished } from "./TaskFinished";
 
+export const taskRelations = ['taskFinished', 'tags'];
+
 export enum DaysOfTheWeek {
   SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY
 }
@@ -36,7 +38,7 @@ export class Task extends BaseEntity{
   //first param sets the type of the entity being related to, second param sets where the relation is pointing to.
   //switch to !:
   @OneToMany(() => TaskFinished, taskFinished => taskFinished.task)
-  TaskFinished?: TaskFinished[];
+  taskFinished?: TaskFinished[];
 
   @ManyToOne(() => User, user => user.tasks) 
   user!: User;
