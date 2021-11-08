@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { restricted } from '../middleware/auth';
 
-import { Task } from '../typeorm/entities/Task';
+import { Task, taskRelations } from '../typeorm/entities/Task';
 import { TaskFinished } from '../typeorm/entities/TaskFinished';
 import { User } from '../typeorm/entities/User';
 
@@ -39,25 +39,49 @@ router.post('/:userId', restricted, async (req, res) => {
 
 router.get('/:userId', restricted, async (req, res) => {
   // { recursiveTasks: [{ ... }], nonRecursiveTasks: [{...}] }
-  //tags=value+value+value&taskDate=value&taskFinished=value
+  // /userId?tags=value+value+value&taskDate=value&taskFinished=value
 
-  const { tags, taskDate, taskFinished } = req.query;
+  //Trying to store query keys and values in an object only if they exist in the query.
+  //That way we can ...Object into the Task.find below.
+  
+  interface LooseObject {
+    [key: string]: any
+  }
+
+  const filter: LooseObject = {};
+  
+  if(req.query.tags) filter.tags = req.query.tags;   
+  if(req.query.taskDate) filter.taskDate = req.query.taskDate;
+  if(req.query.taskFinished) filter.taskFinished = req.query.taskFinished;
+
   const { userId } = req.params;
   const user = await User.findOne({
     id: userId
   });
 
-  console.log(tags);
-  
-  if (user && (tags || taskDate || taskFinished))  {
-    const filteredTasks = await Task.find({ relations: ['tags', 'taskDate', 'taskFinished'] });
-    res.status(200).json({ filteredTasks });
-  } else if (user) {
-    const allTasks = await Task.find({ relations: [] })
-    res.status(200).json(allTasks)
+  if (user) {
+    const filteredTasks = await Task.find({ where: {...filter}, relations: taskRelations });
+    res.status(200).json(filteredTasks);
+  } else if (!(user)) {
+    res.status(404).json({message: 'User Not Found'}); 
   } else {
     res.status(400).json({message: 'Bad Request'});
   }
+  
+  
+  // console.log(tags);
+
+  // if (user && (tags || taskDate || taskFinished))  {
+  //   const filteredTasks = await Task.find({ relations: ['tags', 'taskDate', 'taskFinished'] });
+  //   res.status(200).json({ filteredTasks });
+  // } else if (user) {
+  //   const allTasks = await Task.find({ relations: [] })
+  //   res.status(200).json(allTasks)
+  // } else if (!(user)) {
+  //   res.status(404).json({message: 'User Not Found'});
+  // } else {
+  //   res.status(400).json({message: 'Bad Request'});
+  // }
 
 });
 
