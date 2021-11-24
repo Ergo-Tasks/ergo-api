@@ -1,9 +1,11 @@
+import { triggerAsyncId } from 'async_hooks';
 import { Router } from 'express';
 import { restricted } from '../middleware/auth';
+import { Tag } from '../typeorm/entities/Tag';
 
 import { Task, taskRelations } from '../typeorm/entities/Task';
 import { TaskFinished } from '../typeorm/entities/TaskFinished';
-import { User } from '../typeorm/entities/User';
+import { User, userRelations } from '../typeorm/entities/User';
 
 const router = Router();
 
@@ -14,19 +16,28 @@ router.post('/:userId', restricted, async (req, res) => {
     const user = await User.findOneOrFail({id: userId});
     const body: Task = req.body;
     const task = new Task();
- 
-    task.taskName = body.taskName;
-    task.taskDescription = body.taskDescription;
-    task.isRecursive = body.isRecursive;            
-    task.user = user;
     
-    if (task.isRecursive && body.recTaskDate) {
-      task.recTaskDate = body.recTaskDate;
-    } else if (!(task.isRecursive) && body.taskDate) {
-      task.taskDate = body.taskDate;
-    } else {
-      res.status(400).json({message: 'Bad Request: Missing date field(s)'});
+    task.user = user;
+    task.isRecursive = body.isRecursive;            
+    task.taskDescription = body.taskDescription;
+    task.taskName = body.taskName;
+    
+    if(body.tags) {
+      
+      const tagArr = body.tags;
+    
+      tagArr.forEach(async (el) => {
+        const tag = new Tag();
+        tag.tagName = el.tagName;
+        tag.tagColor = el.tagColor;
+        task.tags?.push(tag);
+      })
+      
     }
+    
+    if (task.isRecursive && body.recTaskDate) task.recTaskDate = body.recTaskDate;
+    else if (!(task.isRecursive) && body.taskDate) task.taskDate = body.taskDate; 
+    else res.status(400).json({message: 'Bad Request: Missing date field(s)'});
 
     await task.save();
 
