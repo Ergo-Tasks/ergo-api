@@ -20,17 +20,20 @@ const request = supertest(server);
 describe('Task routes', () => {
 
   const taskExample = {
-    taskName: 'Workout',
-    taskDescription: 'Chest, back, shoulders, legs, arms',
+    taskName: 'Econ Work',
+    taskDescription: 'Complete problems 1-34 in textbook Ch. 12',
     isRecursive: false,
     taskDate: 1628912941, // 8-13-21 20-49-01
+    tags: [{tagName: 'school', tagColor: '#101010'},
+    {tagName: 'homework', tagColor: '#333333'}]
   }
 
   const recTaskExample = {
-    taskName: 'Clean',
-    taskDescription: 'Vacuum living room, clean kitchen & bathroom',
+    taskName: 'Econ Quiz',
+    taskDescription: 'Do econ quizzes!',
     isRecursive: true,
     recTaskDate: [{day: DaysOfTheWeek.MONDAY, time: 1315}, {day: DaysOfTheWeek.THURSDAY, time: 900}],
+    tags: [{tagName: 'school', tagColor: '#020202'}]
   }
 
   const userExample = {
@@ -59,13 +62,15 @@ describe('Task routes', () => {
       expect(res.status).toBe(201);
     });
 
-    it('Should return status 201 and appends Task into User array of Task', async () => {
+    it('Should return status 201 and appends task with tag, to user\'s task array', async () => {
       const res = await request.post(`/api/tasks/${dbUser.id}`)
         .send(recTaskExample);
-      const user = await User.findOneOrFail({where: {email: dbUser.email}, relations: userRelations });
-      const task = await Task.findOneOrFail({taskName: taskExample.taskName});
+      const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: [userRelations[0], `tasks.${taskRelations[0]}`, `tasks.${taskRelations[1]}`]});
+      const task = await Task.findOneOrFail({ where: {taskName: recTaskExample.taskName}, relations: [taskRelations[0], taskRelations[1]] });
+      const tagCheck = user.tasks[(user.tasks.length)-1];
 
-      expect(user.tasks).toContainEqual(task);
+      expect(user.tasks).toContainEqual(task)
+      expect(tagCheck.tags).toContainEqual(recTaskExample.tags)
       expect(res.status).toBe(201);
     });
 
@@ -93,23 +98,23 @@ describe('Task routes', () => {
 
     it('Should return status 200 with all user\'s tasks', async () => {
       const res = await request.get(`/api/tasks/${dbUser.id}`);
-      const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: [userRelations[0], 'tasks.taskFinished', 'tasks.tags']});
+      const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: [userRelations[0], `tasks.${taskRelations[0]}`, `tasks.${taskRelations[1]}`]});
       const expectedResponse = JSON.stringify(user.tasks);
 
       expect(res.status).toBe(200);
       expect(res.text).toBe(expectedResponse);
     });
 
-
-
-    // connect ECONNREFUSED 127.0.0.1:80
-    // is received when test is ran, so i comment it out for now.
+    //access a property equal to an array, inside of an array of objects.
 
     // it('Should return status 200 with user\'s completed tasks under one tag', async () => {
-    //   const res = await request.get(`api/tasks/${dbUser.id}?tags=school_stuff`);
-    //   const user = await User.findOneOrFail({email: userExample.email});
+    //   const res = await request.get(`/api/tasks/${dbUser.id}?tags=school`);
+    //   const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: [userRelations[0], `tasks.${taskRelations[0]}`, `tasks.${taskRelations[1]}`]});
+    //   const taggedTasks = user.tasks.filter((el) => {
+    //     // return el.tags?.includes('school');
+    //   })
       
-    //   const expectedResponse = JSON.stringify(user.tasks);
+    //   const expectedResponse = JSON.stringify(taggedTasks)
       
     //   expect(res.status).toBe(200);
     //   expect(res.text).toBe(expectedResponse);
