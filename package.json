@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "bcrypt": "^5.0.1",
+    "color": "^4.0.2",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
@@ -33,13 +34,14 @@
     "typeorm": "^0.2.35"
   },
   "devDependencies": {
-    "@types/node": "^16.4.7",
     "@types/bcrypt": "^5.0.0",
+    "@types/color": "^3.0.2",
     "@types/cors": "^2.8.12",
     "@types/express": "^4.17.13",
     "@types/jest": "^26.0.24",
     "@types/jsonwebtoken": "^8.5.4",
     "@types/morgan": "^1.9.3",
+    "@types/node": "^16.4.7",
     "@types/supertest": "^2.0.11",
     "jest": "^27.0.6",
     "nodemon": "^2.0.12",
