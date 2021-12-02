@@ -1,14 +1,13 @@
-import { triggerAsyncId } from 'async_hooks';
 import { Router } from 'express';
 import { restricted } from '../middleware/auth';
 import { Tag } from '../typeorm/entities/Tag';
 
 import { Task, taskRelations } from '../typeorm/entities/Task';
-import { TaskFinished } from '../typeorm/entities/TaskFinished';
-import { User, userRelations } from '../typeorm/entities/User';
+import { User } from '../typeorm/entities/User';
 
 const router = Router();
 
+//Route creates a task, saves fields from request body and adds it to User's task by userId. 
 router.post('/:userId', restricted, async (req, res) => {
   
   try {
@@ -21,19 +20,6 @@ router.post('/:userId', restricted, async (req, res) => {
     task.isRecursive = body.isRecursive;            
     task.taskDescription = body.taskDescription;
     task.taskName = body.taskName;
-    
-    if(body.tags) {
-      
-      const tagArr = body.tags;
-    
-      tagArr.forEach(async (el) => {
-        const tag = new Tag();
-        tag.tagName = el.tagName;
-        tag.tagColor = el.tagColor;
-        task.tags?.push(tag);
-      })
-      
-    }
     
     if (task.isRecursive && body.recTaskDate) task.recTaskDate = body.recTaskDate;
     else if (!(task.isRecursive) && body.taskDate) task.taskDate = body.taskDate; 
@@ -48,6 +34,7 @@ router.post('/:userId', restricted, async (req, res) => {
 
 });
 
+//Route retrieves all user's tasks
 router.get('/:userId', restricted, async (req, res) => {
   // { recursiveTasks: [{ ... }], nonRecursiveTasks: [{...}] }
   // /userId?tags=value+value+value&taskDate=value&taskFinished=value
@@ -96,6 +83,7 @@ router.get('/:userId', restricted, async (req, res) => {
 
 });
 
+//Route retrieves task by userId and taskId
 router.get('/:userId/:taskId', restricted, async (req, res) => {
 
   const { userId, taskId } = req.params;
