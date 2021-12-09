@@ -1,4 +1,3 @@
-import { triggerAsyncId } from 'async_hooks';
 import { Router } from 'express';
 import { restricted } from '../middleware/auth';
 import { Tag } from '../typeorm/entities/Tag';
