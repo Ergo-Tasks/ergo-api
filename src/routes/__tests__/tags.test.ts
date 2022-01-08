@@ -14,8 +14,21 @@ jest.mock('../../middleware/auth', () => ({
 }));
 
 const request = supertest(server);
+let connection: any;
 
 describe('Tag routes', () => {
+
+  beforeAll(async () => {
+    connection = await createConnection();  
+    await request.post('/api/users/')
+      .send(userExample);
+    dbUser = await User.findOneOrFail({email: userExample.email}); 
+  })
+
+  afterAll(async () => {
+    await connection.close();
+    connection = null;
+  })
 
   const tagExample = {
     tagName: 'workout',
@@ -39,13 +52,6 @@ describe('Tag routes', () => {
 
   let dbUser:User;
   let dbTask:Task;
-
-  beforeAll(async () => {
-    await createConnection();
-    await request.post('/api/users/')
-      .send(userExample);
-    dbUser = await User.findOneOrFail({email: userExample.email});
-  });
 
   describe('POST /api/tags/:userId', () => {
 
