@@ -9,7 +9,6 @@ const router = Router();
 
 router.post('/:userId', restricted, async (req, res) => {
 
-  try {
   const { userId } = req.params;
   const user = await User.findOne({ id: userId });
   const body: Tag = req.body;
@@ -26,10 +25,7 @@ router.post('/:userId', restricted, async (req, res) => {
   } else {
     res.status(404).json({ message: 'Not Found' });
   }
-} catch (err) {
-  res.status(400).send();
-}
 
 });
 
-
+export default router;
