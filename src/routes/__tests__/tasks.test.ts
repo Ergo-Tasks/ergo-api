@@ -16,8 +16,21 @@ jest.mock('../../middleware/auth', () => ({
 }));
 
 const request = supertest(server);
+let connection: any;
 
 describe('Task routes', () => {
+
+  beforeAll(async () => {
+    connection = await createConnection();  
+    await request.post('/api/users/')
+      .send(userExample);
+    dbUser = await User.findOneOrFail({email: userExample.email});
+  })
+
+  afterAll(async () => {
+    await connection.close();
+    connection = null;
+  })
 
   const taskExample = {
     taskName: 'Econ Work',
@@ -45,13 +58,6 @@ describe('Task routes', () => {
   }
 
   let dbUser:User;
-
-  beforeAll(async () => {
-    await createConnection();
-    await request.post('/api/users/')
-      .send(userExample);
-    dbUser = await User.findOneOrFail({email: userExample.email});
-  });
 
   describe('POST /api/tasks/:userId', () => {
 
