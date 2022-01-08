@@ -12,11 +12,18 @@ jest.mock('../../middleware/auth', () => ({
 }));
 
 const request = supertest(server);
+let connection: any;
 
 describe('User authentication routes', () => {
 
+
   beforeAll(async () => {
-    await createConnection();
+    connection = await createConnection();  
+  })
+
+  afterAll(async () => {
+    await connection.close();
+    connection = null;
   })
 
   const userExample = {
