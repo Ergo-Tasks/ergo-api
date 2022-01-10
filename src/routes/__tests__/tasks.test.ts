@@ -8,6 +8,7 @@ import { Tag } from '../../typeorm/entities/Tag'
 import { TaskFinished } from '../../typeorm/entities/TaskFinished';
 import { DaysOfTheWeek,  IDate} from '../../typeorm/entities/Task';
 import { User, userRelations } from '../../typeorm/entities/User';
+import { Connection } from 'typeorm';
 
 jest.mock('../../middleware/auth', () => ({
   restricted: (req: Request, res: Response, nextFunction: NextFunction) => {
@@ -16,7 +17,7 @@ jest.mock('../../middleware/auth', () => ({
 }));
 
 const request = supertest(server);
-let connection: any;
+let connection: Connection;
 
 describe('Task routes', () => {
 
@@ -28,8 +29,9 @@ describe('Task routes', () => {
   })
 
   afterAll(async () => {
-    await connection.close();
-    connection = null;
+    if (connection) {
+      await connection.close();
+    }
   })
 
   const taskExample = {
