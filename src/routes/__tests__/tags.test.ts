@@ -4,8 +4,9 @@ import { NextFunction, Request, Response } from "express";
 import server from "../../server";
 import createConnection from '../../typeorm';
 import { Tag } from '../../typeorm/entities/Tag';
-import { User } from '../../typeorm/entities/User';
-import { Task } from '../../typeorm/entities/Task';
+import { User, userRelations } from '../../typeorm/entities/User';
+import { Task, taskRelations } from '../../typeorm/entities/Task';
+import { Connection } from 'typeorm';
 
 jest.mock('../../middleware/auth', () => ({
   restricted: (req: Request, res: Response, nextFunction: NextFunction) => {
@@ -14,7 +15,7 @@ jest.mock('../../middleware/auth', () => ({
 }));
 
 const request = supertest(server);
-let connection: any;
+let connection: Connection;
 
 describe('Tag routes', () => {
 
@@ -22,12 +23,16 @@ describe('Tag routes', () => {
     connection = await createConnection();  
     await request.post('/api/users/')
       .send(userExample);
-    dbUser = await User.findOneOrFail({email: userExample.email}); 
+    dbUser = await User.findOneOrFail({ email: userExample.email });
+    await request.post(`/api/tasks/${dbUser.id}`)
+      .send(taskExample);
+    dbTask = await Task.findOneOrFail({ taskName: taskExample.taskName }); 
   })
 
   afterAll(async () => {
-    await connection.close();
-    connection = null;
+    if (connection) {
+      await connection.close();
+    }
   })
 
   const tagExample = {
@@ -36,7 +41,7 @@ describe('Tag routes', () => {
   }
 
   const taskExample = {
-    taskName: 'Econ Work 2',
+    taskName: 'Math416 HW',
     taskDescription: 'Complete problems 13-54 in textbook Ch. 12',
     isRecursive: false,
     taskDate: 1628912941, // 8-13-21 20-49-01
@@ -74,8 +79,7 @@ describe('Tag routes', () => {
     it('Should return status 400 because of missing tagName field', async () => {
       const res = await request.post(`/api/tags/${dbUser.id}`)
         .send({...tagExample, tagName: ''});
-      const expectedResponse = JSON.stringify({ message: 'Bad Request: Missing Required Field' });
-
+      const expectedResponse = JSON.stringify({ message: 'Missing Required Field' });
 
       expect(res.status).toBe(400);
       expect(res.text).toBe(expectedResponse);
@@ -84,7 +88,7 @@ describe('Tag routes', () => {
     it('Should return status 400 because of missing tagColor field', async () => {
       const res = await request.post(`/api/tags/${dbUser.id}`)
         .send({...tagExample, tagColor: ''});
-      const expectedResponse = JSON.stringify({ message: 'Bad Request: Missing Required Field' });
+      const expectedResponse = JSON.stringify({ message: 'Missing Required Field' });
 
       expect(res.status).toBe(400);
       expect(res.text).toBe(expectedResponse);
