@@ -16,8 +16,12 @@ router.post('/:userId', restricted, async (req, res) => {
 
   if (user) {
 
-    tag.tagName = body.tagName;
-    tag.tagColor = body.tagColor;
+    if (body.tagName && body.tagColor) {
+      tag.tagName = body.tagName;
+      tag.tagColor = body.tagColor;
+    } else {
+      res.status(400).json({ message: 'Missing Required Field'})
+    }
   
     await tag.save();
     res.status(201).send();
