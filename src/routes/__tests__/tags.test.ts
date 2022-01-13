@@ -68,7 +68,7 @@ describe('Tag routes', () => {
     });
     
     it('Should return status 201 (with taskId) and link task with tag using taskId', async () => {
-      const res = await request.post(`/api/tags/${dbUser.id}/${dbTask.id}`)
+      const res = await request.post(`/api/tags/${dbUser.id}?taskId=${dbTask.id}`)
       .send(tagExample);
       const expectedResponse = JSON.stringify(dbTask.tags);
       
@@ -78,8 +78,8 @@ describe('Tag routes', () => {
     
     it('Should return status 400 because of missing tagName field', async () => {
       const res = await request.post(`/api/tags/${dbUser.id}`)
-        .send({...tagExample, tagName: ''});
-      const expectedResponse = JSON.stringify({ message: 'Missing Required Field' });
+        .send({tagColor: 'good tag color'});
+      const expectedResponse = JSON.stringify({ message: 'Bad Request' });
 
       expect(res.status).toBe(400);
       expect(res.text).toBe(expectedResponse);
@@ -87,17 +87,17 @@ describe('Tag routes', () => {
 
     it('Should return status 400 because of missing tagColor field', async () => {
       const res = await request.post(`/api/tags/${dbUser.id}`)
-        .send({...tagExample, tagColor: ''});
-      const expectedResponse = JSON.stringify({ message: 'Missing Required Field' });
+        .send({tagName: 'good tag name'});
+      const expectedResponse = JSON.stringify({ message: 'Bad Request' });
 
       expect(res.status).toBe(400);
       expect(res.text).toBe(expectedResponse);
     });
 
     it('Should return status 404 (with taskId) because of invaild taskId', async () => {
-      const res = await request.post(`/api/tags/${dbUser.id}/invalidTaskId`)
+      const res = await request.post(`/api/tags/${dbUser.id}?taskId=invalidTaskId`)
         .send(tagExample);
-      const expectedResponse = JSON.stringify({ message: 'Not Found' });  
+      const expectedResponse = JSON.stringify({ message: 'Task Not Found' });  
 
       expect(res.status).toBe(404);
       expect(res.text).toBe(expectedResponse);
