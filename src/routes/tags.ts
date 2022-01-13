@@ -16,15 +16,26 @@ router.post('/:userId', restricted, async (req, res) => {
 
   if (user) {
 
-    if (body.tagName && body.tagColor) {
+    try {
+
       tag.tagName = body.tagName;
       tag.tagColor = body.tagColor;
-    } else {
-      res.status(400).json({ message: 'Missing Required Field'})
+
+      if (req.query && req.query.taskId) { 
+        try {
+          const task = await Task.findOneOrFail({ id: (req.query as any).taskId }); 
+          task.tags?.push(tag);
+        } catch (err) {
+          res.status(404).json({ message: 'Task Not Found' });
+        }
+      }   
+
+      await tag.save();
+      res.status(201).send();
+
+    } catch (err) {
+      res.status(400).json({ message: 'Bad Request'});
     }
-  
-    await tag.save();
-    res.status(201).send();
 
   } else {
     res.status(404).json({ message: 'Not Found' });
