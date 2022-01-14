@@ -3,10 +3,11 @@ import { NextFunction, Request, Response } from "express";
 
 import server from "../../server";
 import createConnection from '../../typeorm';
+import { Connection } from 'typeorm';
+
 import { Tag } from '../../typeorm/entities/Tag';
 import { User, userRelations } from '../../typeorm/entities/User';
 import { Task, taskRelations } from '../../typeorm/entities/Task';
-import { Connection } from 'typeorm';
 
 jest.mock('../../middleware/auth', () => ({
   restricted: (req: Request, res: Response, nextFunction: NextFunction) => {
@@ -30,9 +31,7 @@ describe('Tag routes', () => {
   })
 
   afterAll(async () => {
-    if (connection) {
-      await connection.close();
-    }
+    await connection.close();
   })
 
   const tagExample = {
@@ -70,10 +69,14 @@ describe('Tag routes', () => {
     it('Should return status 201 (with taskId) and link task with tag using taskId', async () => {
       const res = await request.post(`/api/tags/${dbUser.id}?taskId=${dbTask.id}`)
       .send(tagExample);
-      const expectedResponse = JSON.stringify(dbTask.tags);
-      
+
+      //in order to find this task, the relations were needed and I don't quite understand why?
+      //const task = await Task.findOneOrFail({ taskName: taskExample.taskName});
+      const task = await Task.findOneOrFail({ where: {id: dbTask.id}, relations: [taskRelations[0], taskRelations[1]]});
+      const expectedResponse = JSON.stringify(task.tags);
+
       expect(res.status).toBe(201);
-      expect(res.text).toBe(expectedResponse);
+      expect(task.tags).toContainEqual(tagExample);
     });
     
     it('Should return status 400 because of missing tagName field', async () => {
