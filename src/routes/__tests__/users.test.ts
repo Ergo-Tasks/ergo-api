@@ -23,9 +23,7 @@ describe('User authentication routes', () => {
   })
 
   afterAll(async () => {
-    if (connection) {
-      await connection.close();
-    }
+    await connection.close();
   })
 
   const userExample = {

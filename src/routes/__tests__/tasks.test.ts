@@ -29,9 +29,7 @@ describe('Task routes', () => {
   })
 
   afterAll(async () => {
-    if (connection) {
-      await connection.close();
-    }
+    await connection.close();
   })
 
   const taskExample = {
