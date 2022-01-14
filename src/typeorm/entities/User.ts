@@ -30,6 +30,7 @@ export class User extends BaseEntity{
   })
   email!: string;
 
+  //a task is required to have a user, but does a user need to have a task?
   @OneToMany(() => Task, task => task.user) 
   tasks!: Task[];
 
