@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { restricted } from '../middleware/auth';
 
 import { User } from '../typeorm/entities/User';
-import { Task } from '../typeorm/entities/Task';
+import { Task, taskRelations } from '../typeorm/entities/Task';
 import { Tag } from '../typeorm/entities/Tag';
 
 const router = Router();
@@ -22,12 +22,16 @@ router.post('/:userId', restricted, async (req, res) => {
       tag.tagColor = body.tagColor;
 
       if (req.query && req.query.taskId) { 
-        try {
-          const task = await Task.findOneOrFail({ id: (req.query as any).taskId }); 
-          task.tags?.push(tag);
-        } catch (err) {
-          res.status(404).json({ message: 'Task Not Found' });
-        }
+
+          const task = await Task.findOne({ where: {id: req.query.taskId}, relations: [taskRelations[0], taskRelations[1]] });
+          
+          if (task) {
+            task.tags?.push(tag);
+            await task.save();
+          } else {
+            res.status(404).json({ message: 'Task Not Found' });
+          }
+
       }   
 
       await tag.save();
