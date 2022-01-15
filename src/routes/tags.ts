@@ -4,7 +4,6 @@ import { restricted } from '../middleware/auth';
 import { User } from '../typeorm/entities/User';
 import { Task, taskRelations } from '../typeorm/entities/Task';
 import { Tag } from '../typeorm/entities/Tag';
-import { Connection } from 'typeorm';
 
 const router = Router();
 
