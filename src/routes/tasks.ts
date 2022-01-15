@@ -20,19 +20,7 @@ router.post('/:userId', restricted, async (req, res) => {
     task.isRecursive = body.isRecursive;            
     task.taskDescription = body.taskDescription;
     task.taskName = body.taskName;
-    
-    if(body.tags) {
-      
-      const tagArr = body.tags;
-    
-      tagArr.forEach(async (el) => {
-        const tag = new Tag();
-        tag.tagName = el.tagName;
-        tag.tagColor = el.tagColor;
-        task.tags?.push(tag);
-      })
-      
-    }
+    task.tags = body.tags;
     
     if (task.isRecursive && body.recTaskDate) task.recTaskDate = body.recTaskDate;
     else if (!(task.isRecursive) && body.taskDate) task.taskDate = body.taskDate; 
