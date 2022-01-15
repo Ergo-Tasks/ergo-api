@@ -71,12 +71,11 @@ describe('Task routes', () => {
     it('Should return status 201 and appends task with tag, to user\'s task array', async () => {
       const res = await request.post(`/api/tasks/${dbUser.id}`)
         .send(recTaskExample);
-      const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: [userRelations[0], `tasks.${taskRelations[0]}`, `tasks.${taskRelations[1]}`]});
-      const task = await Task.findOneOrFail({ where: {taskName: recTaskExample.taskName}, relations: [taskRelations[0], taskRelations[1]] });
-      const tagCheck = user.tasks[(user.tasks.length)-1];
+      const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: userRelations});
+      const task = await Task.findOneOrFail({ where: {taskName: recTaskExample.taskName}, relations: taskRelations });
 
       expect(user.tasks).toContainEqual(task)
-      expect(tagCheck.tags).toContainEqual(recTaskExample.tags)
+      expect(task.tags).toMatchObject(recTaskExample.tags)
       expect(res.status).toBe(201);
     });
 
@@ -104,7 +103,7 @@ describe('Task routes', () => {
 
     it('Should return status 200 with all user\'s tasks', async () => {
       const res = await request.get(`/api/tasks/${dbUser.id}`);
-      const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: [userRelations[0], `tasks.${taskRelations[0]}`, `tasks.${taskRelations[1]}`]});
+      const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: userRelations});
       const expectedResponse = JSON.stringify(user.tasks);
 
       expect(res.status).toBe(200);
