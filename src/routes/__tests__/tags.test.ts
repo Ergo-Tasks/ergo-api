@@ -69,14 +69,10 @@ describe('Tag routes', () => {
     it('Should return status 201 (with taskId) and link task with tag using taskId', async () => {
       const res = await request.post(`/api/tags/${dbUser.id}?taskId=${dbTask.id}`)
       .send(tagExample);
-
-      //in order to find this task, the relations were needed and I don't quite understand why?
-      //const task = await Task.findOneOrFail({ taskName: taskExample.taskName});
-      const task = await Task.findOneOrFail({ where: {id: dbTask.id}, relations: [taskRelations[0], taskRelations[1]]});
-      const expectedResponse = JSON.stringify(task.tags);
+      const task = await Task.findOneOrFail({ where: {id: dbTask.id}, relations: taskRelations });
 
       expect(res.status).toBe(201);
-      expect(task.tags).toContainEqual(tagExample);
+      expect(task.tags).toMatchObject([tagExample]);
     });
     
     it('Should return status 400 because of missing tagName field', async () => {
