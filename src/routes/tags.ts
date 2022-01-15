@@ -4,6 +4,7 @@ import { restricted } from '../middleware/auth';
 import { User } from '../typeorm/entities/User';
 import { Task, taskRelations } from '../typeorm/entities/Task';
 import { Tag } from '../typeorm/entities/Tag';
+import { Connection } from 'typeorm';
 
 const router = Router();
 
@@ -23,10 +24,10 @@ router.post('/:userId', restricted, async (req, res) => {
 
       if (req.query && req.query.taskId) { 
 
-          const task = await Task.findOne({ where: {id: req.query.taskId}, relations: [taskRelations[0], taskRelations[1]] });
+          const task = await Task.findOne({ where: {id: req.query.taskId}, relations: taskRelations });
           
           if (task) {
-            task.tags?.push(tag);
+            task.tags = [tag];
             await task.save();
           } else {
             res.status(404).json({ message: 'Task Not Found' });
