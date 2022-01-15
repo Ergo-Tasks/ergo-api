@@ -2,7 +2,7 @@ import { Column, Entity, BaseEntity, PrimaryGeneratedColumn, OneToMany, CreateDa
 import { Task } from "./Task";
 
 //for task tests, to findOne user where relation: userRelations, an array of 'tasks'
-export const userRelations = ['tasks'];
+export const userRelations = ['tasks', 'tasks.taskFinished', 'tasks.tags'];
 
 @Entity()
 export class User extends BaseEntity{
@@ -30,8 +30,7 @@ export class User extends BaseEntity{
   })
   email!: string;
 
-  //a task is required to have a user, but does a user need to have a task?
-  @OneToMany(() => Task, task => task.user) 
+  @OneToMany(() => Task, task => task.user)
   tasks!: Task[];
 
 }
