@@ -39,6 +39,11 @@ describe('Tag routes', () => {
     tagColor: '#fff'
   }
 
+  const tagExample2 = {
+    tagName: 'delete this tag',
+    tagColor: '#fff'
+  }
+
   const taskExample = {
     taskName: 'Math416 HW',
     taskDescription: 'Complete problems 13-54 in textbook Ch. 12',
@@ -109,6 +114,110 @@ describe('Tag routes', () => {
 
       expect(res.status).toBe(404);
       expect(res.text).toBe(expectedResponse);
+    });
+
+  });
+
+  describe('GET /api/tags/:userId', () => {
+
+  });
+
+  describe('GET /api/tags/:userId/:tagId', () => {
+
+    it('Should return status 200 with tag in JSON body', async () => {
+      const testTag = await Tag.findOneOrFail({
+        tagName: tagExample.tagName
+      });
+      const res = await request.get(`/api/tags/${dbUser.id}/${testTag.id}`);
+      const expectedResponse = JSON.stringify({ tag: testTag });
+
+      expect(res.status).toBe(200);
+      expect(res.text).toBe(expectedResponse);
+    });
+
+    it('Should return status 404 because user cannot be found', async () => {
+      const testTag = await Tag.findOneOrFail({
+        tagName: tagExample.tagName
+      });
+      const res = await request.get(`/api/tags/invalidUserId/${testTag.id}`);
+      const expectedResponse = JSON.stringify({ message: 'Not Found' });
+
+      expect(res.status).toBe(404);
+      expect(res.text).toBe(expectedResponse);
+    });
+
+    it('Should return status 404 because tag cannot be found', async () => {
+      const res = await request.get(`/api/tags/${dbUser.id}/invalidTagId`);
+      const expectedResponse = JSON.stringify({ message: 'Not Found' });
+
+      expect(res.status).toBe(404);
+      expect(res.text).toBe(expectedResponse);
+    });
+
+  });
+
+  describe('PUT /api/tags/:userId/:tagId', () => {
+
+    it('Should return status 200 with updated tag information in JSON body', async () => {
+      const testTag = await Tag.findOneOrFail({
+        tagName: tagExample.tagName
+      });
+      const updatedTag = {
+        tagName: 'Priority Tasks'
+      }
+      const res = await request.put(`/api/tags/${dbUser.id}/${testTag.id}`)
+        .send(updatedTag);
+      const expectedResponse = JSON.stringify({ tag: {
+        ...testTag,
+        ...updatedTag
+      }});
+
+      expect(res.status).toBe(200);
+      expect(res.text).toBe(expectedResponse);
+    });
+
+    it('Should return status 404 because user cannot be found', async () => {
+      const testTag = await Tag.findOneOrFail({
+        tagName: tagExample.tagName
+      });
+      const updatedTag = {
+        tagName: 'Fun Tasks'
+      }
+      const res = await request.put(`/api/tags/invalidUserId/${testTag.id}`)
+        .send(updatedTag);
+      const expectedResponse = JSON.stringify({ message: 'Not Found' });
+
+      expect(res.status).toBe(404);
+      expect(res.text).toBe(expectedResponse);
+    });
+
+    it('Should return status 404 because tag cannot be found', async () => {
+      const updatedTag = {
+        tagName: 'Priority Tasks'
+      }
+      const res = await request.put(`/api/tags/${dbUser.id}/invalidTagId`)
+        .send(updatedTag);
+      const expectedResponse = JSON.stringify({ message: 'Not Found' });
+
+      expect(res.status).toBe(404);
+      expect(res.text).toBe(expectedResponse);
+    });
+
+  });
+
+  describe('DELETE /api/tags/:userId/:tagId', () => {
+    it('Should return status 201 and sucessfully remove tag from db', async () => {
+      await request.post(`/api/tags/${dbUser.id}`)
+        .send(tagExample2);
+      const testTag = await Tag.findOneOrFail({ tagName: tagExample2.tagName })
+      const res = await request.delete(`/api/tags/${dbUser.id}/${testTag.id}`)
+        .send()
+      const deletedTag = await Tag.findOne({
+        tagName: testTag.tagName
+      });
+
+      expect(res.status).toBe(201);
+      expect(deletedTag).toBeUndefined();
     });
 
   });
