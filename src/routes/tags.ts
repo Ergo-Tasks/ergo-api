@@ -55,51 +55,50 @@ router.get('/:userId', restricted, async (req, res) => {
 });
 
 //Returns a tag found by tagId in params
-router.get('/:tagId', restricted, async (req, res) => {
+router.get('/:userId/:tagId', restricted, async (req, res) => {
 
-  const { tagId } = req.params;
+  const { userId, tagId } = req.params;
+  const user = await User.findOne({ id: userId });
   const tag = await Tag.findOne({ id: tagId });
   
-  if (tag) res.status(200).json({tag})
+  if (user && tag) res.status(200).json({tag})
   else res.status(404).json({message: 'Not Found'})
 
 })
 
-router.put('/:tagId', restricted, async (req, res) => {
+router.put('/:userId/:tagId', restricted, async (req, res) => {
 
-  try {
-
-    const { tagId } = req.params;
-    const tag = await User.findOne({ id: tagId });
-    const body: Tag = req.body;
+  const { userId, tagId } = req.params;
+  const user = await User.findOne({ id: userId });
+  const tag = await Tag.findOne({ id: tagId });
+  const body: Tag = req.body;
+  
+  if(user && tag) {
+    Object.assign(tag, {
+      ...body
+    })
     
-    if(tag) {
-      Object.assign(tag, {
-        ...body
-      })
-      
-      await tag.save();
-      res.status(200).json({tag});
-    }
-
-  } catch(err) {
-    res.status(400).json({message: 'Bad Request', error: err})
+    await tag.save();
+    res.status(200).json({tag});
+  } else {
+    res.status(404).json({message: 'Not Found' })
   }
   
-})
+});
 
-router.delete('/:tagId', restricted, async (req, res) => {
+router.delete('/:userId/:tagId', restricted, async (req, res) => {
 
-  const { tagId } = req.params;
-  const tag = await User.findOne({ id: tagId });
+  const { userId, tagId } = req.params;
+  const user = await User.findOne({ id: userId });
+  const tag = await Tag.findOne({ id: tagId });
 
-  if (tag) {
+  if (user && tag) {
     await tag.remove();
     res.status(201).send();
   } else {
     res.status(404).json({message: 'Not Found'})
   }
   
-})
+});
 
 export default router;
