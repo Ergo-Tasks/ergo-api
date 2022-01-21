@@ -120,6 +120,28 @@ describe('Tag routes', () => {
 
   describe('GET /api/tags/:userId', () => {
 
+    it('Should return status 200 with tag array of all tags in JSON body', async () => {
+      await request.post(`/api/tags/${dbUser.id}`)
+        .send({ ...tagExample, tagName: 'Favorites' });
+      await request.post(`/api/tags/${dbUser.id}`)
+        .send({ ...tagExample, tagName: 'Things to do' });
+      
+      const res = await request.get(`/api/tags/${dbUser.id}`);
+      const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: userRelations });
+      const expectedResponse = JSON.stringify(user.tags);
+
+      expect(res.status).toBe(200);
+      expect(res.text).toBe(expectedResponse);
+    });
+
+    it('Should return status 404 because user cannot be found', async () => {
+      const res = await request.get('/api/tags/invalidUserId');
+      const expectedResponse = JSON.stringify({ message: 'Not Found' });
+
+      expect(res.status).toBe(404);
+      expect(res.text).toBe(expectedResponse)
+    })
+
   });
 
   describe('GET /api/tags/:userId/:tagId', () => {
