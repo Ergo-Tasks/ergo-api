@@ -170,7 +170,7 @@ describe('User authentication routes', () => {
 
     it('Should return status 400 due to user attempting to update email to non-unique email', async () => {
       //saving an example user to use same email in test
-      const secondUser = new User;
+      const secondUser = new User();
       secondUser.firstName = "Jacob",
       secondUser.lastName = "Anderson",
       secondUser.userName = "jacob139",
