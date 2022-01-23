@@ -1,0 +1,30 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [master, dev]
+  pull_request:
+    branches: [master, dev]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [15.x]
+
+    steps:
+      - name: Clone repository recursively with submodules
+        uses: actions/checkout@master
+        with:
+          ssh-key: ${{ secrets.CI_SSH_PRIVATE_KEY }}
+          submodules: true
+          
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm run build --if-present
+      - run: npm test
