@@ -26,6 +26,7 @@ router.post('/:userId', restricted, async (req, res) => {
     else if (!(task.isRecursive) && body.taskDate) task.taskDate = body.taskDate; 
     else res.status(400).json({message: 'Bad Request: Missing date field(s)'});
 
+    await user.save();
     await task.save();
 
     res.status(201).send();
@@ -36,35 +37,61 @@ router.post('/:userId', restricted, async (req, res) => {
 });
 
 router.get('/:userId', restricted, async (req, res) => {
-  // { recursiveTasks: [{ ... }], nonRecursiveTasks: [{...}] }
-  // /userId?tags=value+value+value&taskDate=value&taskFinished=value
-
-  //Trying to store query keys and values in an object only if they exist in the query.
-  //That way we can ...Object into the Task.find below.
-  
-  interface LooseObject {
-    [key: string]: any
-  }
-
-  const filter: LooseObject = {};
-  
-  if(req.query.tags) filter.tags = req.query.tags;   
-  if(req.query.taskDate) filter.taskDate = req.query.taskDate;
-  if(req.query.taskFinished) filter.taskFinished = req.query.taskFinished;
 
   const { userId } = req.params;
-  const user = await User.findOne({
-    id: userId
-  });
+  const user = await User.findOne({ where: {id: userId}, relations: userRelations });
+
+  interface LooseObject {
+    [key: string]: any;
+  }
+  
+  const filter: LooseObject = {};
+
+  if (req.query && req.query.tagId) {
+    filter.tags = await Tag.findOne({ where: {id: req.query.tagId} });
+  }
+  if (req.query && req.query.taskDate) filter.taskDate = req.query.taskDate;
+  if (req.query && req.query.taskFinished) filter.taskFinished = req.query.taskFinished;
 
   if (user) {
-    const filteredTasks = await Task.find({ where: {...filter}, relations: taskRelations });
+    const filteredTasks:Task[] = await Task.find({ where: {...filter}, relations: taskRelations });
     res.status(200).json(filteredTasks);
-  } else if (!(user)) {
-    res.status(404).json({message: 'User Not Found'}); 
   } else {
-    res.status(400).json({message: 'Bad Request'});
+    res.status(404).json({ message: 'Not Found' });
   }
+
+});
+
+// router.get('/:userId', restricted, async (req, res) => {
+//   // { recursiveTasks: [{ ... }], nonRecursiveTasks: [{...}] }
+//   // /userId?tags=value+value+value&taskDate=value&taskFinished=value
+
+//   //Trying to store query keys and values in an object only if they exist in the query.
+//   //That way we can ...Object into the Task.find below.
+  
+//   interface LooseObject {
+//     [key: string]: any
+//   }
+
+//   const filter: LooseObject = {};
+  
+//   if(req.query.tags) filter.tags = req.query.tags;   
+//   if(req.query.taskDate) filter.taskDate = req.query.taskDate;
+//   if(req.query.taskFinished) filter.taskFinished = req.query.taskFinished;
+
+//   const { userId } = req.params;
+//   const user = await User.findOne({
+//     id: userId
+//   });
+
+//   if (user) {
+//     const filteredTasks = await Task.find({ where: {...filter}, relations: taskRelations });
+//     res.status(200).json(filteredTasks);
+//   } else if (!(user)) {
+//     res.status(404).json({message: 'User Not Found'}); 
+//   } else {
+//     res.status(400).json({message: 'Bad Request'});
+//   }
   
   
   // console.log(tags);
@@ -81,12 +108,12 @@ router.get('/:userId', restricted, async (req, res) => {
   //   res.status(400).json({message: 'Bad Request'});
   // }
 
-});
+// });
 
 router.get('/:userId/:taskId', restricted, async (req, res) => {
 
   const { userId, taskId } = req.params;
-  const user = await User.findOne({ id: userId });
+  const user = await User.findOne({ where: {id: userId }, relations: userRelations });
   const task = await Task.findOne({ id: taskId });
 
   if (user && task) {
