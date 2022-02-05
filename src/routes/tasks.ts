@@ -3,11 +3,11 @@ import { restricted } from '../middleware/auth';
 import { Tag } from '../typeorm/entities/Tag';
 
 import { Task, taskRelations } from '../typeorm/entities/Task';
-import { TaskFinished } from '../typeorm/entities/TaskFinished';
 import { User, userRelations } from '../typeorm/entities/User';
 
 const router = Router();
 
+//Route creates a task, saves fields from request body and adds it to User's task by userId. 
 router.post('/:userId', restricted, async (req, res) => {
   
   try {
@@ -36,6 +36,7 @@ router.post('/:userId', restricted, async (req, res) => {
 
 });
 
+//Route retrieves all user's tasks
 router.get('/:userId', restricted, async (req, res) => {
 
   const { userId } = req.params;
@@ -110,6 +111,7 @@ router.get('/:userId', restricted, async (req, res) => {
 
 // });
 
+//Route retrieves task by userId and taskId
 router.get('/:userId/:taskId', restricted, async (req, res) => {
 
   const { userId, taskId } = req.params;

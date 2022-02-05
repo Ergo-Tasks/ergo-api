@@ -37,7 +37,6 @@ describe('Task routes', () => {
     await connection.close();
   });
   
-  
   const tagExample1 = {
     tagName: 'Work related',
     tagColor: 'green'

@@ -51,6 +51,14 @@ describe('Tag routes', () => {
     taskDate: 1628912941, // 8-13-21 20-49-01
   }
 
+  const multTagEx = [{
+    tagName: 'School',
+    tagColor: '#101010'
+  },
+  { tagName: 'Afterschool',
+    tagColor: '#333333'
+  }]
+
   const userExample = {
     firstName: "Marty",
     lastName: "Byrde",
@@ -64,7 +72,7 @@ describe('Tag routes', () => {
 
   describe('POST /api/tags/:userId', () => {
 
-    it('Should return status 201 (without taskId)', async () => {
+    it('Should return status 201 indicating tag has been created successfully', async () => {
       const res = await request.post(`/api/tags/${dbUser.id}`)
         .send(tagExample);
       
@@ -241,6 +249,12 @@ describe('Tag routes', () => {
       expect(res.status).toBe(201);
       expect(deletedTag).toBeUndefined();
     });
+    it('Should return status 400 indicating tag name already exists', async () => {
+      const res = await request.post(`/api/tags/${dbUser.id}`)
+        .send(tagExample);
+
+      expect(res.status).toBe(400)
+    })
 
   });
 
