@@ -1,5 +1,8 @@
 import { Router } from 'express';
 import { restricted } from '../middleware/auth';
+import { User } from '../typeorm/entities/User';
+import { Tag } from '../typeorm/entities/Tag';
+
 
 import { User, userRelations } from '../typeorm/entities/User';
 import { Task, taskRelations } from '../typeorm/entities/Task';
