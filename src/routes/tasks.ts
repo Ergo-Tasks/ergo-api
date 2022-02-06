@@ -36,7 +36,7 @@ router.post('/:userId', restricted, async (req, res) => {
 
 });
 
-//Route retrieves all user's tasks
+//Route retrieves all user's tasks filtered by tags, taskDate, and/or taskFinished
 router.get('/:userId', restricted, async (req, res) => {
 
   const { userId } = req.params;
