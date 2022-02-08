@@ -9,6 +9,7 @@ import { Tag } from '../../typeorm/entities/Tag';
 import { User, userRelations } from '../../typeorm/entities/User';
 import { Task, taskRelations } from '../../typeorm/entities/Task';
 
+
 jest.mock('../../middleware/auth', () => ({
   restricted: (req: Request, res: Response, nextFunction: NextFunction) => {
     nextFunction();
@@ -249,6 +250,7 @@ describe('Tag routes', () => {
       expect(res.status).toBe(201);
       expect(deletedTag).toBeUndefined();
     });
+
     it('Should return status 400 indicating tag name already exists', async () => {
       const res = await request.post(`/api/tags/${dbUser.id}`)
         .send(tagExample);
