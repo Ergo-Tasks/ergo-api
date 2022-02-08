@@ -41,12 +41,8 @@ router.get('/:userId', restricted, async (req, res) => {
 
   const { userId } = req.params;
   const user = await User.findOne({ where: {id: userId}, relations: userRelations });
-
-  interface LooseObject {
-    [key: string]: any;
-  }
   
-  const filter: LooseObject = {};
+  const filter: Record<string, any> = {};
 
   if (req.query && req.query.tagId) {
     filter.tags = await Tag.findOne({ where: {id: req.query.tagId} });

@@ -7,6 +7,10 @@ import { Tag } from '../typeorm/entities/Tag';
 
 const router = Router();
 
+/**
+ * Tag creation route that creates new Tag from TypeORM entities, stores information in new Tag,
+ * if there is a taskId query parameter find it and then push this tag into task.tags array, then save into db
+ */
 router.post('/:userId', restricted, async (req, res) => {
 
   const { userId } = req.params;
@@ -52,9 +56,6 @@ router.post('/:userId', restricted, async (req, res) => {
 
 //returns all user's tags
 router.get('/:userId', restricted, async (req, res) => {
-
-  //i don't think there is a way to do this without relating user and tag by one to many
-  //added ^
 
   const { userId } = req.params;
   const user = await User.findOne({ where: {id: userId}, relations: userRelations });
