@@ -5,7 +5,6 @@ import server from "../../server";
 import createConnection from '../../typeorm';
 import { Task, taskRelations, DaysOfTheWeek, IDate } from '../../typeorm/entities/Task';
 import { Tag } from '../../typeorm/entities/Tag'
-import { TaskFinished } from '../../typeorm/entities/TaskFinished';
 import { User, userRelations } from '../../typeorm/entities/User';
 import { Connection } from 'typeorm';
 
@@ -88,13 +87,11 @@ describe('Task routes', () => {
       const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: userRelations });
       const task = await Task.findOneOrFail({ where: {taskName: recTaskExample.taskName}, relations: taskRelations });
       
-      //expect(user.tasks).toContain(task);
       expect(user.tasks).toEqual(
         expect.arrayContaining([
           task
         ])
       );
-      //expect(task.tags).toContain(dbTag1);
       expect(task.tags).toEqual(
         expect.arrayContaining([
           dbTag1
@@ -107,20 +104,10 @@ describe('Task routes', () => {
       const res = await request.post(`/api/tasks/${dbUser.id}`)
         .send({...taskExample, tags: [dbTag1, dbTag2] });
       const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: userRelations });
-      const task = await Task.findOneOrFail({ where: {taskName: taskExample.taskName}, relations: taskRelations });
+      const task = await Task.findOneOrFail({ where: {taskName: taskExample.taskName, user}, relations: taskRelations });
 
-      //expect(user.tasks).toContainEqual([task]);
-      expect(user.tasks).toEqual(
-        expect.arrayContaining([
-          task
-        ])
-      );
-      //expect(task.tags).toContainEqual([dbTag1, dbTag2]);
-      expect(task.tags).toEqual(
-        expect.arrayContaining([
-          dbTag1, dbTag2
-        ])
-      );
+      expect(user.tasks).toEqual(expect.arrayContaining([task]));
+      expect(task.tags).toEqual(expect.arrayContaining([dbTag1, dbTag2]));
       expect(res.status).toBe(201);
     })
 
@@ -155,7 +142,6 @@ describe('Task routes', () => {
       expect(res.text).toBe(expectedResponse);
     });
 
-    //access a property equal to an array, inside of an array of objects.
 
     it('Should return status 200 with user\'s tasks under one tag', async () => {
       const res = await request.get(`/api/tasks/${dbUser.id}?tagId=${dbTag1.id}`);
@@ -166,35 +152,39 @@ describe('Task routes', () => {
       expect(res.text).toBe(expectedResponse);
     });
 
-    // it('Should return status 200 with user\'s completed tasks under one tag', async () => {
-
-    // });
-
-    // it('Should return status 200 with all user\'s in-progress tasks', async () => {
-    //   const res = await request.get(`/api/tasks/${dbUser.id}`);
-    //   const user = await User.findOneOrFail({email: userExample.email});
-    //   //Need to find a way to deconstruct user's tasks, then access taskFinished field per each task. (loop?)
-    //   const userTasks = {...user.tasks};
-
-    //   const expectedResponse = JSON.stringify(userTasks);
-    // });
 
 
 
-    // it('Should return status 200 with all user\'s tasks under multiple tags, between two dates', async () => {
-    //   const task1 = await request.post(`/api/tasks/${dbUser.id}`)
-    //     .send({...taskExample, tags: ['workingout', 'tough', 'mustDo\'s']});
-    //   const task2 = await request.post(`/api/tasks/${dbUser.id}`)
-    //     .send({...taskExample, taskDate: 1628913000, tags: ['workingout', 'tough', 'mustDo\'s']});
-    //   const task3 = await request.post(`/api/tasks/${dbUser.id}`)
-    //     .send({...taskExample, taskDate: 1828912900, tags: ['workingout', 'tough', 'mustDo\'s']});
-    //   const res = await request.get(`/api/tasks/${dbUser.id}?tags=workingout+tough+mustDo\'s&taskDate[gte]=1628912900&taskDate[lte]=1628913941`);
-    //   const user = await User.findOneOrFail({email: userExample.email});
-    //   const expectedResponse = JSON.stringify(user.tasks);
+     it.skip('Should return status 200 with user\'s completed tasks under one tag', async () => {
 
-    //   expect(res.status).toBe(200);
-    //   expect(res.text).toBe(expectedResponse);
-    // });
+     });
+
+    it.skip('Should return status 200 with all user\'s in-progress tasks', async () => {
+      const res = await request.get(`/api/tasks/${dbUser.id}`);
+      const user = await User.findOneOrFail({email: userExample.email});
+      //Need to find a way to deconstruct user's tasks, then access taskFinished field per each task. (loop?)
+      const userTasks = {...user.tasks};
+
+      const expectedResponse = JSON.stringify(userTasks);
+    });
+
+    it.skip('Should return status 200 with all user\'s tasks under multiple tags, between two dates', async () => {
+      const task1 = await request.post(`/api/tasks/${dbUser.id}`)
+        .send({...taskExample, tags: ['workingout', 'tough', 'mustDo\'s']});
+      const task2 = await request.post(`/api/tasks/${dbUser.id}`)
+        .send({...taskExample, taskDate: 1628913000, tags: ['workingout', 'tough', 'mustDo\'s']});
+      const task3 = await request.post(`/api/tasks/${dbUser.id}`)
+        .send({...taskExample, taskDate: 1828912900, tags: ['workingout', 'tough', 'mustDo\'s']});
+      const res = await request.get(`/api/tasks/${dbUser.id}?tags=workingout+tough+mustDo\'s&taskDate[gte]=1628912900&taskDate[lte]=1628913941`);
+      const user = await User.findOneOrFail({email: userExample.email});
+      const expectedResponse = JSON.stringify(user.tasks);
+
+      expect(res.status).toBe(200);
+      expect(res.text).toBe(expectedResponse);
+    });
+
+
+
 
     it('Should return status 400 due to searching for tasks with an invalid tag', async () => {
       const res = await request.get(`/api/tasks/${dbUser.id}?tagId=invalidtag`);
@@ -239,90 +229,89 @@ describe('Task routes', () => {
     });
 
   });
+  
+  describe.skip('PUT /api/tasks/:taskId', () => {
+    
+    it('Should return status 200 with updated name, description, and time/date in JSON object', async () => {
+      const task = await Task.findOneOrFail({
+        taskName: taskExample.taskName
+      });
+      const updateTask = {
+        taskName: 'newTaskName',
+        taskDescription: 'new task description',
+        taskDate: 1632242640 //	Tue Sep 21 2021 11:44:00
+      }
+      
+      const res = await request.get(`/api/tasks/${dbUser.id}`)
+      .send({updateTask});
+      const expectedResponse = JSON.stringify({task: {
+        ...task,
+        ...updateTask
+      }})
+      
+      expect(res.status).toBe(200);
+      expect(res.text).toBe(expectedResponse)
+    })
+    
+    it('Should return status 200 with a new set of tags and task is now recursive w/ a recurring date', async () => {
+
+    })
+    
+    it('Should return status 200 adding task to TaskFinished entity to mark completion', async () => {
+      
+    })
+    
+    it('Should return status 200 with task completion being un-done', async () => {
+      
+    })
+    
+    it('Should return status 400 due to task not being found', async () => {
+      const res = await request.get(`/api/tasks/falseId`);
+      
+      expect(res.status).toBe(400);
+    })
+    
+    it('Should return status 400 due to empty request body', async () => {
+      const res = await request.get(`/api/tasks/${dbUser.id}`)
+      .send({});
+      
+      expect(res.status).toBe(400);
+    })
+    
+  })
+  
+  describe.skip('DELETE /api/tasks/:taskId', () => {
+    
+    it('Should return status 200 successfully deleting a non-recurrsive task', async () => {
+      const task = await Task.findOneOrFail({ taskName: taskExample.taskName });
+      const res = await request.delete(`/api/tasks/${task.id}`)
+      .send();
+      const task2 = await Task.findOneOrFail({ taskName: taskExample.taskName });
+      
+      expect(res.status).toBe(200);
+      expect(task2).toBe(undefined);
+    })
+    
+    it('Should return status 200 successfully deleting a recurrsive task', async () => {
+      const task = await Task.findOneOrFail({ taskName: recTaskExample.taskName });
+      const res = await request.delete(`/api/tasks/${task.id}`)
+      .send();
+      const task2 = await Task.findOneOrFail({ taskName: recTaskExample.taskName });
+      
+      expect(res.status).toBe(200);
+      expect(task2).toBe(undefined);
+    })
+    
+    it('Should return status 400 due to invalid task Id', async () => {
+      const res = await request.delete(`/api/tasks/falseId`)
+      .send();
+      
+      expect(res.status).toBe(400);
+    })
+    
+  })
+  
 });
-
-//   describe('PUT /api/tasks/:taskId', () => {
-    
-//     it('Should return status 200 with updated name, description, and time/date in JSON object', async () => {
-//       const task = await Task.findOneOrFail({
-//         taskName: taskExample.taskName
-//       });
-//       const updateTask = {
-//         taskName: 'newTaskName',
-//         taskDescription: 'new task description',
-//         taskDate: 1632242640 //	Tue Sep 21 2021 11:44:00
-//       }
-      
-//       const res = await request.get(`/api/tasks/${dbUser.id}`)
-//         .send({updateTask});
-//       const expectedResponse = JSON.stringify({task: {
-//         ...task,
-//         ...updateTask
-//       }})
-
-//       expect(res.status).toBe(200);
-//       expect(res.text).toBe(expectedResponse)
-//     })
-    
-//     it('Should return status 200 with a new set of tags and task is now recursive w/ a recurring date', async () => {
-
-//     })
-
-//     it('Should return status 200 adding task to TaskFinished entity to mark completion', async () => {
-      
-//     })
-
-//     it('Should return status 200 with task completion being un-done', async () => {
-
-//     })
-
-//     it('Should return status 400 due to task not being found', async () => {
-//       const res = await request.get(`/api/tasks/falseId`);
-
-//       expect(res.status).toBe(400);
-//     })
-
-//     it('Should return status 400 due to empty request body', async () => {
-//       const res = await request.get(`/api/tasks/${dbUser.id}`)
-//         .send({});
-
-//       expect(res.status).toBe(400);
-//     })
-
-//   })
-
-//   describe('DELETE /api/tasks/:taskId', () => {
-    
-//     it('Should return status 200 successfully deleting a non-recurrsive task', async () => {
-//       const task = await Task.findOneOrFail({ taskName: taskExample.taskName });
-//       const res = await request.delete(`/api/tasks/${task.id}`)
-//         .send();
-//       const task2 = await Task.findOneOrFail({ taskName: taskExample.taskName });
-
-//       expect(res.status).toBe(200);
-//       expect(task2).toBe(undefined);
-//     })
-
-//     it('Should return status 200 successfully deleting a recurrsive task', async () => {
-//       const task = await Task.findOneOrFail({ taskName: recTaskExample.taskName });
-//       const res = await request.delete(`/api/tasks/${task.id}`)
-//         .send();
-//       const task2 = await Task.findOneOrFail({ taskName: recTaskExample.taskName });
-
-//       expect(res.status).toBe(200);
-//       expect(task2).toBe(undefined);
-//     })
-
-//     it('Should return status 400 due to invalid task Id', async () => {
-//       const res = await request.delete(`/api/tasks/falseId`)
-//         .send();
-      
-//       expect(res.status).toBe(400);
-//     })
-
-//   })
-
-// });
 
     // wed -> friday 
     // wed sept 15 -> friday sept 17
