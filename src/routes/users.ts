@@ -22,7 +22,6 @@ const router = Router();
  */
 router.post('/', async (req, res) => {
   
-  //try-catch to ensure data is being stored/saved properly
   try { 
 
     //to access and store column variables into a new instance of User
@@ -37,9 +36,7 @@ router.post('/', async (req, res) => {
     //hashSync method takes in string, and number for salt. Returns hashed password string.
     user.password = bcrypt.hashSync(body.password, 12);
 
-    //await for data to save in database
     await user.save(); 
-    //Send 201 status meaning request was created.
     res.status(201).send();
 
   } catch(err) {
@@ -57,12 +54,9 @@ router.post('/', async (req, res) => {
  */
 router.post('/login', async (req, res) => {
 
-  //try-catch for error handling and for await functionality
   try {
 
-    //accessing request contents
     const body: User = req.body;
-    //finds entity that matches user email sent through the request
     const user = await User.findOneOrFail({
       email: body.email
     })
@@ -138,6 +132,7 @@ router.put('/:userId', restricted, async (req, res) => {
     //.assign only updates the 'user' object, we still have to save to db.
     await user.save();
     res.status(200).json({user});
+    
   } catch (err) {
     res.status(400).json({message: "Bad Request"});
   }
