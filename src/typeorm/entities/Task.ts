@@ -43,7 +43,9 @@ export class Task extends BaseEntity{
   @ManyToOne(() => User, user => user.tasks) 
   user!: User;
 
-  @ManyToMany(() => Tag) 
+  @ManyToMany(() => Tag, {
+    cascade: true
+  })
   @JoinTable() 
-  tags?: Tag[]; 
+  tags?: Tag[];
 }

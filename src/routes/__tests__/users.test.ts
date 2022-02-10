@@ -4,6 +4,7 @@ import { NextFunction, Request, Response } from "express";
 import createConnection from "../../typeorm";
 import server from "../../server";
 import { User } from "../../typeorm/entities/User";
+import { Connection } from 'typeorm';
 
 jest.mock('../../middleware/auth', () => ({
   restricted: (req: Request, res: Response, nextFunction: NextFunction) => {
@@ -12,11 +13,17 @@ jest.mock('../../middleware/auth', () => ({
 }));
 
 const request = supertest(server);
+let connection: Connection;
 
 describe('User authentication routes', () => {
 
+
   beforeAll(async () => {
-    await createConnection();
+    connection = await createConnection();  
+  })
+
+  afterAll(async () => {
+    await connection.close();
   })
 
   const userExample = {
@@ -163,7 +170,7 @@ describe('User authentication routes', () => {
 
     it('Should return status 400 due to user attempting to update email to non-unique email', async () => {
       //saving an example user to use same email in test
-      const secondUser = new User;
+      const secondUser = new User();
       secondUser.firstName = "Jacob",
       secondUser.lastName = "Anderson",
       secondUser.userName = "jacob139",

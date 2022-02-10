@@ -1,8 +1,9 @@
-import { Column, Entity, BaseEntity, PrimaryGeneratedColumn, OneToMany, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Column, Entity, BaseEntity, PrimaryGeneratedColumn, OneToMany, CreateDateColumn, UpdateDateColumn, JoinColumn, JoinTable } from "typeorm";
+import { Tag } from "./Tag";
 import { Task } from "./Task";
 
 //for task tests, to findOne user where relation: userRelations, an array of 'tasks'
-export const userRelations = ['tasks'];
+export const userRelations = ['tasks', 'tasks.taskFinished', 'tasks.tags', 'tags'];
 
 @Entity()
 export class User extends BaseEntity{
@@ -30,7 +31,12 @@ export class User extends BaseEntity{
   })
   email!: string;
 
-  @OneToMany(() => Task, task => task.user) 
+  @OneToMany(() => Task, task => task.user)
   tasks!: Task[];
+
+  @OneToMany(() => Tag, tag => tag.user, {
+    cascade: true
+  })
+  tags?: Tag[];
 
 }
