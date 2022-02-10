@@ -14,23 +14,31 @@ const router = Router();
  * @param response - responds 201 if successful, 400 w/ a message if unsuccessful.
  */
 router.post('/:userId', restricted, async (req, res) => {
-
-  try {
-
+  
+  try {  
     const { userId } = req.params;
-    const user = await User.findOneOrFail({ where: {id: userId }, relations: userRelations });
-    const body: Tag = req.body;
-    const tag = new Tag();
+    const user = await User.findOne({ where: {id: userId }, relations: userRelations });
+    
+    if (user) {
+      const body: Tag = req.body;
+      const tag = new Tag();
+  
+      if (body.tagName && body.tagColor) {
+        tag.tagName = body.tagName;
+        tag.tagColor = body.tagColor;
+        tag.user = user;
 
-    tag.tagName = body.tagName;
-    tag.tagColor = body.tagColor;
-    tag.user = user;
-
-    await tag.save();
-    res.status(201).send();
-
-    } catch (err) {
-      res.status(400).json({ message: 'Bad Request'});
+        await tag.save();
+        res.status(201).send();
+      } else {
+        res.status(400).json({ message: 'Bad request, missing required field(s)' });
+      }
+      
+    } else {
+      res.status(404).json({ message: 'Not found, ensure userId is correct' });
+    }
+  } catch (err) {
+    res.status(500).json({ message: 'Unexpected error' });
   }
 
 });
@@ -44,15 +52,19 @@ router.post('/:userId', restricted, async (req, res) => {
  */
 router.get('/:userId', restricted, async (req, res) => {
 
-  const { userId } = req.params;
-  const user = await User.findOne({ where: {id: userId}, relations: userRelations });
-  
-  if (user) { 
-    res.status(200).json(user.tags);
-  } else {
-    res.status(404).json({ message: 'Not Found' });
-  }
+  try { 
+    const { userId } = req.params;
+    const user = await User.findOne({ where: {id: userId}, relations: userRelations });
 
+    if (user) {
+      res.status(200).json(user.tags);
+    } else {
+      res.status(404).json({ message: 'Not found, ensure userId is correct' });
+    }
+  } catch (err) {
+    res.status(500).json({ message: 'Unexpected error' });
+  }
+  
 });
 
 /**
@@ -65,14 +77,17 @@ router.get('/:userId', restricted, async (req, res) => {
 router.get('/:userId/:tagId', restricted, async (req, res) => {
 
   try {
-    
     const { userId, tagId } = req.params;
-    const user = await User.findOneOrFail({ id: userId });
-    const tag = await Tag.findOneOrFail({ id: tagId, user: user })
-    
-    res.status(200).json({tag})
+    const user = await User.findOne({ id: userId });
+    const tag = await Tag.findOne({ id: tagId, user })
+
+    if(tag) {
+      res.status(200).json({tag})
+    } else {
+      res.status(404).json({ message: 'Not found, ensure user and tag Ids are correct' });
+    }
   } catch(err) {
-    res.status(404).json({ message: 'Not Found' })
+    res.status(500).json({ message: 'Unexpected error' });
   }
 })
 
@@ -86,36 +101,48 @@ router.get('/:userId/:tagId', restricted, async (req, res) => {
 router.put('/:userId/:tagId', restricted, async (req, res) => {
 
   try {
-
     const { userId, tagId } = req.params;
-    const user = await User.findOneOrFail({ id: userId });
-    const tag = await Tag.findOneOrFail({ id: tagId, user});
+    const user = await User.findOne({ id: userId });
+    const tag = await Tag.findOne({ id: tagId, user});
     const body: Tag = req.body;
     
-    Object.assign(tag, {
-      ...body
-    })
-    
-    await tag.save();
-    res.status(200).json({tag});
-
+    if (tag) {
+      Object.assign(tag, {
+        ...body
+      });
+      
+      await tag.save();
+      res.status(200).json({tag});
+    } else
+      res.status(404).json({message: 'Not found, ensure user and tag Ids are correct' })
   } catch(err) {
-    res.status(404).json({message: 'Not Found' })
+    res.status(500).json({message: 'Unexpected error' })
   }
   
 });
 
+/**
+ * Route deletes tag from db
+ * 
+ * @param restricted - middleware to verify a user's authenticity, route deals with sensitive data.
+ * @param request - retrieval and passing of data to route from client. Contains userId and tagId in params to find User and Tag.
+ * @param response - responds with status code based on functionality of route.
+ */
 router.delete('/:userId/:tagId', restricted, async (req, res) => {
 
-  const { userId, tagId } = req.params;
-  const user = await User.findOne({ id: userId });
-  const tag = await Tag.findOne({ id: tagId, user });
+  try {
+    const { userId, tagId } = req.params;
+    const user = await User.findOne({ id: userId });
+    const tag = await Tag.findOne({ id: tagId, user });
 
-  if (user && tag) {
-    await tag.remove();
-    res.status(201).send();
-  } else {
-    res.status(404).json({message: 'Not Found'})
+    if (tag) {
+      await tag.remove();
+      res.status(201).send();  
+    } else {
+      res.status(404).json({message: 'Not found, ensure user and tag Ids are correct'});
+    }
+  } catch (err) {
+    res.status(500).json({message: 'Unexpected error'});
   }
   
 });
