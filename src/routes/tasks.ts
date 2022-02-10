@@ -68,7 +68,7 @@ router.get('/:userId', restricted, async (req, res) => {
   }
 
   if (user) {
-    const filteredTasks: Task[] = await Task.find({ where: {...filter}, relations: taskRelations });
+    const filteredTasks: Task[] = await Task.find({ where: filter, relations: taskRelations });
     res.status(200).json(filteredTasks);
   } else {
     res.status(404).json({ message: 'Not Found' });
