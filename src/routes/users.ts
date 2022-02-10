@@ -17,8 +17,9 @@ const router = Router();
  * Signup route that creates new User from our typeOrm entities, stores information and encrypts
  * password then saves into db. 
  * 
- * @param body - User entity that holds data from request body
- * @param user - User entity that is a new User and going to be saved in the db
+ * @param restricted - middleware to verify a user's authenticity, route deals with sensitive data.
+ * @param request - retrieval and passing of data to route from client. Contains userId in params to find User.
+ * @param response - responds with status code based on functionality of route.
  */
 router.post('/', async (req, res) => {
   
@@ -49,8 +50,9 @@ router.post('/', async (req, res) => {
  * Login route that finds user by email given in request body, then using bcrypt- checks encrypted
  * password with password in request body. If correct, signs jwt token to user.
  * 
- * @param body - User entity that holds data from request body
- * @param user - User entity found by unique email
+ * @param restricted - middleware to verify a user's authenticity, route deals with sensitive data.
+ * @param request - retrieval and passing of data to route from client. Contains userId in params to find User.
+ * @param response - responds with status code based on functionality of route.
  */
 router.post('/login', async (req, res) => {
 
@@ -86,8 +88,9 @@ router.post('/login', async (req, res) => {
  * Goes through restricted middleware to authenticate token. Gets user info by userId params,
  * then returns user info as JSON body.
  * 
- * @param userId - String for finding User entity from request parameters
- * @param user - User entity found by unique id
+ * @param restricted - middleware to verify a user's authenticity, route deals with sensitive data.
+ * @param request - retrieval and passing of data to route from client. Contains userId in params to find User.
+ * @param response - responds with status code based on functionality of route.
  */
 router.get('/:userId', restricted, async (req, res) => {
   
@@ -108,10 +111,9 @@ router.get('/:userId', restricted, async (req, res) => {
  * Update route that finds user by the parameter id. Uses request body to update user fields,
  * then saves to the database.
  * 
- * @param userId - String for finding User entity from request parameters
- * @param body - User entity that holds data from request body
- * @param user - User entity found by unique id
- * @param password - If body.password has changed, take in password from request body -> hash it -> then assign it to user.password
+ * @param restricted - middleware to verify a user's authenticity, route deals with sensitive data.
+ * @param request - retrieval and passing of data to route from client. Contains userId in params to find User.
+ * @param response - responds with status code based on functionality of route.
  */
 router.put('/:userId', restricted, async (req, res) => {
 
