@@ -7,11 +7,12 @@ import { Tag } from '../typeorm/entities/Tag';
 const router = Router();
 
 /**
- * Route creates a new tag and assigns it to a user
+ * Route creates a new tag and assigns it to a user.
  * 
  * @param restricted - middleware to verify a user's authenticity, route deals with sensitive data.
  * @param request - handles data sending and retrieval. Contains userId in param to find a user to assign tag to.
- * @param response - responds 201 if successful, 400 w/ a message if unsuccessful.
+ * @param response - responds 201 if successful, 400 if missing required field(s), 404 is user not found in db, 
+ *                   or 500 if unexpected issue.
  */
 router.post('/:userId', restricted, async (req, res) => {
   
@@ -44,11 +45,11 @@ router.post('/:userId', restricted, async (req, res) => {
 });
 
 /**
- * Route retrieves all a user's tags
+ * Route retrieves all a user's tags.
  * 
  * @param restricted - middleware to verify a user's authenticity, route deals with sensitive data.
  * @param request - handles data sending and retrieval. Contains userId in param to find user.
- * @param response - responds 200 with user's tags if successful, 400 w/ error msg if unsuccessful.
+ * @param response - responds 200 with user's tags if successful, 404 if user not found in db, or 500 if unexpected issue.
  */
 router.get('/:userId', restricted, async (req, res) => {
 
@@ -72,7 +73,7 @@ router.get('/:userId', restricted, async (req, res) => {
  * 
  * @param restricted - middleware to verify a user's authenticity, route deals with sensitive data.
  * @param request - handles data sending and retrieval. Contains userId and tagId in param to find user, then tag.
- * @param response - responds 200 with user's tag if successful, 404 if not found.
+ * @param response - responds 200 with user's tag if successful, 404 if tag not found in db, or 500 if unexpected issue.
  */
 router.get('/:userId/:tagId', restricted, async (req, res) => {
 
@@ -96,7 +97,7 @@ router.get('/:userId/:tagId', restricted, async (req, res) => {
  * 
  * @param restricted - middleware to verify a user's authenticity, route deals with sensitive data.
  * @param request - handles data sending and retrieval. Contains userId and tagId in param to find user, then tag.
- * @param response - responds 200 with user's updated tag if successful, 404 if not found.
+ * @param response - responds 200 with user's updated tag if successful, 404 if tag not found in db, or 500 if unexpected issue.
  */
 router.put('/:userId/:tagId', restricted, async (req, res) => {
 
@@ -122,11 +123,11 @@ router.put('/:userId/:tagId', restricted, async (req, res) => {
 });
 
 /**
- * Route deletes tag from db
+ * Route deletes tag from db.
  * 
  * @param restricted - middleware to verify a user's authenticity, route deals with sensitive data.
  * @param request - retrieval and passing of data to route from client. Contains userId and tagId in params to find User and Tag.
- * @param response - responds with status code based on functionality of route.
+ * @param response - responds 200 if sucessful, 404 if tag not found, or 500 if unexpected issue.
  */
 router.delete('/:userId/:tagId', restricted, async (req, res) => {
 
@@ -137,7 +138,7 @@ router.delete('/:userId/:tagId', restricted, async (req, res) => {
 
     if (tag) {
       await tag.remove();
-      res.status(201).send();  
+      res.status(200).send();  
     } else {
       res.status(404).json({message: 'Not found, ensure user and tag Ids are correct'});
     }
