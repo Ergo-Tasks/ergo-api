@@ -73,7 +73,7 @@ describe('Task routes', () => {
   let dbTag2:Tag;
   
   describe('POST /api/tasks/:userId', () => {
-    
+
     it('Should return status 201', async () => {
       const res = await request.post(`/api/tasks/${dbUser.id}`)
         .send(taskExample);
@@ -87,20 +87,12 @@ describe('Task routes', () => {
       const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: userRelations });
       const task = await Task.findOneOrFail({ where: {taskName: recTaskExample.taskName}, relations: taskRelations });
       
-      expect(user.tasks).toEqual(
-        expect.arrayContaining([
-          task
-        ])
-      );
-      expect(task.tags).toEqual(
-        expect.arrayContaining([
-          dbTag1
-        ])
-      );
+      expect(user.tasks).toEqual(expect.arrayContaining([ task ]));
+      expect(task.tags).toEqual(expect.arrayContaining([ dbTag1 ]));
       expect(res.status).toBe(201);
     });
 
-    it('Should return status 201 and appends task with multiple tags', async () => {
+    it.skip('Should return status 201 and appends task with multiple tags', async () => {
       const res = await request.post(`/api/tasks/${dbUser.id}`)
         .send({...taskExample, tags: [dbTag1, dbTag2] });
       const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: userRelations });
@@ -109,7 +101,7 @@ describe('Task routes', () => {
       expect(user.tasks).toEqual(expect.arrayContaining([task]));
       expect(task.tags).toEqual(expect.arrayContaining([dbTag1, dbTag2]));
       expect(res.status).toBe(201);
-    })
+    });
 
     it('Should return status 400 because Task isRecursive and missing recTaskDate field', async () => {
       const res = await request.post(`/api/tasks/${dbUser.id}`)
@@ -143,7 +135,7 @@ describe('Task routes', () => {
     });
 
 
-    it('Should return status 200 with user\'s tasks under one tag', async () => {
+    it.skip('Should return status 200 with user\'s tasks under one tag', async () => {
       const res = await request.get(`/api/tasks/${dbUser.id}?tagId=${dbTag1.id}`);
       const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: userRelations });
       const expectedResponse = JSON.stringify('hello')
@@ -152,12 +144,9 @@ describe('Task routes', () => {
       expect(res.text).toBe(expectedResponse);
     });
 
+    it.skip('Should return status 200 with user\'s completed tasks under one tag', async () => {
 
-
-
-     it.skip('Should return status 200 with user\'s completed tasks under one tag', async () => {
-
-     });
+    });
 
     it.skip('Should return status 200 with all user\'s in-progress tasks', async () => {
       const res = await request.get(`/api/tasks/${dbUser.id}`);
@@ -183,10 +172,7 @@ describe('Task routes', () => {
       expect(res.text).toBe(expectedResponse);
     });
 
-
-
-
-    it('Should return status 400 due to searching for tasks with an invalid tag', async () => {
+    it.skip('Should return status 400 due to searching for tasks with an invalid tag', async () => {
       const res = await request.get(`/api/tasks/${dbUser.id}?tagId=invalidtag`);
       const expectedResponse = JSON.stringify({message: "Not Found"})
 
@@ -204,7 +190,7 @@ describe('Task routes', () => {
 
   });
 
-  describe('GET /api/tasks/:userId/:taskId', () => {
+  describe.skip('GET /api/tasks/:userId/:taskId', () => {
 
     it('Should return status 200 with task information in JSON body', async () => {
       const task = await Task.findOneOrFail({ taskName: taskExample.taskName });
