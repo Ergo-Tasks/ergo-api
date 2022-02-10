@@ -206,7 +206,7 @@ describe('Tag routes', () => {
       const res = await request.delete(`/api/tags/${dbUser.id}/${testTag.id}`);
       const deletedTag = await Tag.findOne({ tagName: testTag.tagName });
 
-      expect(res.status).toBe(201);
+      expect(res.status).toBe(200);
       expect(deletedTag).toBeUndefined();
     });
 
