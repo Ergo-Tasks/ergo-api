@@ -7,6 +7,7 @@ import { Task, taskRelations, DaysOfTheWeek, IDate } from '../../typeorm/entitie
 import { Tag } from '../../typeorm/entities/Tag'
 import { User, userRelations } from '../../typeorm/entities/User';
 import { Connection } from 'typeorm';
+import { createTestTag, createTestUser } from '../../utils';
 
 jest.mock('../../middleware/auth', () => ({
   restricted: (req: Request, res: Response, nextFunction: NextFunction) => {
@@ -21,30 +22,14 @@ describe('Task routes', () => {
    
   beforeAll(async () => {
     connection = await createConnection();  
-    await request.post('/api/users/')
-    .send(userExample);
-    dbUser = await User.findOneOrFail({email: userExample.email});
-    await request.post(`/api/tags/${dbUser.id}`)
-    .send(tagExample1);
-    dbTag1 = await Tag.findOneOrFail({ tagName: tagExample1.tagName });
-    await request.post(`/api/tags/${dbUser.id}`)
-    .send(tagExample2);
-    dbTag2 = await Tag.findOneOrFail({ tagName: tagExample2.tagName });
+    dbUser = await createTestUser('Marty.Byrde@hotmail.com');
+    dbTag1 = await createTestTag('Work related');
+    dbTag2 = await createTestTag('Political');
   });
   
   afterAll(async () => {
     await connection.close();
   });
-  
-  const tagExample1 = {
-    tagName: 'Work related',
-    tagColor: 'green'
-  }
-  
-  const tagExample2 = {
-    tagName: 'Political',
-    tagColor: 'blue'
-  }
   
   const taskExample = {
     taskName: 'Econ Work',
@@ -60,14 +45,6 @@ describe('Task routes', () => {
     recTaskDate: [{day: DaysOfTheWeek.MONDAY, time: 1315}, {day: DaysOfTheWeek.THURSDAY, time: 900}]
   }
   
-  const userExample = {
-    firstName: "Marty",
-    lastName: "Byrde",
-    userName: "MByrde2",
-    email: "Marty.Byrde@hotmail.com",
-    password: "darline_Wildin!"
-  }
-  
   let dbUser:User;
   let dbTag1:Tag;
   let dbTag2:Tag;
@@ -81,25 +58,14 @@ describe('Task routes', () => {
       expect(res.status).toBe(201);
     });
 
-    it('Should return status 201 and appends task with tag to user\'s task array', async () => {
-      const res = await request.post(`/api/tasks/${dbUser.id}`)
-        .send({ ...recTaskExample, tags: [dbTag1] });
-      const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: userRelations });
-      const task = await Task.findOneOrFail({ where: {taskName: recTaskExample.taskName}, relations: taskRelations });
-      
-      expect(user.tasks).toEqual(expect.arrayContaining([ task ]));
-      expect(task.tags).toEqual(expect.arrayContaining([ dbTag1 ]));
-      expect(res.status).toBe(201);
-    });
-
     it.skip('Should return status 201 and appends task with multiple tags', async () => {
       const res = await request.post(`/api/tasks/${dbUser.id}`)
-        .send({...taskExample, tags: [dbTag1, dbTag2] });
+        .send({...taskExample, tags: [dbTag1, dbTag2]});
       const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: userRelations });
       const task = await Task.findOneOrFail({ where: {taskName: taskExample.taskName, user}, relations: taskRelations });
 
-      expect(user.tasks).toEqual(expect.arrayContaining([task]));
-      expect(task.tags).toEqual(expect.arrayContaining([dbTag1, dbTag2]));
+      expect(user.tasks).toContainEqual(task);
+      expect(task.tags).toStrictEqual([dbTag1, dbTag2]);
       expect(res.status).toBe(201);
     });
 
@@ -150,7 +116,7 @@ describe('Task routes', () => {
 
     it.skip('Should return status 200 with all user\'s in-progress tasks', async () => {
       const res = await request.get(`/api/tasks/${dbUser.id}`);
-      const user = await User.findOneOrFail({email: userExample.email});
+      const user = await User.findOneOrFail({email: 'Marty.Byrde@hotmail.com'});
       //Need to find a way to deconstruct user's tasks, then access taskFinished field per each task. (loop?)
       const userTasks = {...user.tasks};
 
@@ -165,7 +131,7 @@ describe('Task routes', () => {
       const task3 = await request.post(`/api/tasks/${dbUser.id}`)
         .send({...taskExample, taskDate: 1828912900, tags: ['workingout', 'tough', 'mustDo\'s']});
       const res = await request.get(`/api/tasks/${dbUser.id}?tags=workingout+tough+mustDo\'s&taskDate[gte]=1628912900&taskDate[lte]=1628913941`);
-      const user = await User.findOneOrFail({email: userExample.email});
+      const user = await User.findOneOrFail({email: 'Marty.Byrde@hotmail.com'});
       const expectedResponse = JSON.stringify(user.tasks);
 
       expect(res.status).toBe(200);
