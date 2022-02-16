@@ -7,6 +7,7 @@ import { Connection } from 'typeorm';
 
 import { Tag } from '../../typeorm/entities/Tag';
 import { User, userRelations } from '../../typeorm/entities/User';
+import { createTestUser } from '../../utils';
 
 jest.mock('../../middleware/auth', () => ({
   restricted: (req: Request, res: Response, nextFunction: NextFunction) => {
@@ -21,14 +22,12 @@ describe('Tag routes', () => {
 
   beforeAll(async () => {
     connection = await createConnection();  
-    await request.post('/api/users/')
-      .send(userExample);
-    dbUser = await User.findOneOrFail({ email: userExample.email });
+    dbUser = await createTestUser('Marty.Byrde@hotmail.com');
   });
 
   afterAll(async () => {
     await connection.close();
-  })
+  });
 
   const tagExample = {
     tagName: 'workout',
@@ -38,14 +37,6 @@ describe('Tag routes', () => {
   const tagExample2 = {
     tagName: 'delete this tag',
     tagColor: '#fff'
-  }
-
-  const userExample = {
-    firstName: "Marty",
-    lastName: "Byrde",
-    userName: "MByrde2",
-    email: "Marty.Byrde@hotmail.com",
-    password: "darline_Wildin!"
   }
 
   let dbUser:User;
