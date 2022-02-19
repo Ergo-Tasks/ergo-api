@@ -2,12 +2,10 @@ import supertest from 'supertest';
 import { NextFunction, Request, Response } from "express";
 
 import server from "../../server";
-import createConnection from '../../typeorm';
 import { Task, taskRelations, DaysOfTheWeek, IDate } from '../../typeorm/entities/Task';
 import { Tag } from '../../typeorm/entities/Tag'
 import { User, userRelations } from '../../typeorm/entities/User';
-import { Connection } from 'typeorm';
-import { createTestTag, createTestUser } from '../../utils';
+import { createTestTag, createTestUser, createTypeormConn } from '../../utils';
 
 jest.mock('../../middleware/auth', () => ({
   restricted: (req: Request, res: Response, nextFunction: NextFunction) => {
@@ -16,21 +14,16 @@ jest.mock('../../middleware/auth', () => ({
 }));
 
 const request = supertest(server);
-let connection: Connection;
 
 describe('Task routes', () => {
-   
-  beforeAll(async () => {
-    connection = await createConnection();  
+  
+  beforeAll(async () => { 
+    await createTypeormConn();
     dbUser = await createTestUser('Marty.Byrde@hotmail.com');
     dbTag1 = await createTestTag('Work related');
     dbTag2 = await createTestTag('Political');
   });
-  
-  afterAll(async () => {
-    await connection.close();
-  });
-  
+
   const taskExample = {
     taskName: 'Econ Work',
     taskDescription: 'Complete problems 1-34 in textbook Ch. 12',
@@ -58,21 +51,22 @@ describe('Task routes', () => {
       expect(res.status).toBe(201);
     });
 
-    it.skip('Should return status 201 and appends task with multiple tags', async () => {
+    it('Should return status 201 and appends task with multiple tags', async () => {
       const res = await request.post(`/api/tasks/${dbUser.id}`)
-        .send({...taskExample, tags: [dbTag1, dbTag2]});
+        .send({ ...taskExample, tags: [dbTag1, dbTag2] });
       const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: userRelations });
       const task = await Task.findOneOrFail({ where: {taskName: taskExample.taskName, user}, relations: taskRelations });
 
       expect(user.tasks).toContainEqual(task);
-      expect(task.tags).toStrictEqual([dbTag1, dbTag2]);
+      expect(task.tags).toContainEqual(dbTag1);
+      expect(task.tags).toContainEqual(dbTag2);
       expect(res.status).toBe(201);
     });
 
     it('Should return status 400 because Task isRecursive and missing recTaskDate field', async () => {
       const res = await request.post(`/api/tasks/${dbUser.id}`)
-        .send({...taskExample, isRecursive: true});
-      const expectedResponse = JSON.stringify({message: 'Bad Request: Missing date field(s)'})
+        .send({ ...taskExample, isRecursive: true, tags: [dbTag1] });
+      const expectedResponse = JSON.stringify({message: 'Bad request, missing date field(s)'})
 
       expect(res.status).toBe(400);
       expect(res.text).toBe(expectedResponse);
@@ -81,7 +75,7 @@ describe('Task routes', () => {
     it('Should return status 400 because Task is not recursive and missing taskDate field', async () => {
       const res = await request.post(`/api/tasks/${dbUser.id}`)
         .send({...recTaskExample, isRecursive: false});
-      const expectedResponse = JSON.stringify({message: 'Bad Request: Missing date field(s)'})
+      const expectedResponse = JSON.stringify({message: 'Bad request, missing date field(s)'})
 
       expect(res.status).toBe(400);
       expect(res.text).toBe(expectedResponse);
@@ -91,7 +85,7 @@ describe('Task routes', () => {
 
   describe('GET /api/tasks/:userId', () => {
 
-    it('Should return status 200 with all user\'s tasks', async () => {
+    it.skip('Should return status 200 with all user\'s tasks', async () => {
       const res = await request.get(`/api/tasks/${dbUser.id}`);
       const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: userRelations});
       const expectedResponse = JSON.stringify(user.tasks);
@@ -100,11 +94,10 @@ describe('Task routes', () => {
       expect(res.text).toBe(expectedResponse);
     });
 
-
-    it.skip('Should return status 200 with user\'s tasks under one tag', async () => {
+    it('Should return status 200 with user\'s tasks under one tag', async () => {
       const res = await request.get(`/api/tasks/${dbUser.id}?tagId=${dbTag1.id}`);
       const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: userRelations });
-      const expectedResponse = JSON.stringify('hello')
+      const expectedResponse = JSON.stringify('hello world')
       
       expect(res.status).toBe(200);
       expect(res.text).toBe(expectedResponse);
@@ -148,7 +141,7 @@ describe('Task routes', () => {
 
     it('Should return status 404 due to User not being found', async () => {
       const res = await request.get(`/api/tasks/falseUserId`);
-      const expectedResponse = JSON.stringify({message: 'Not Found' });
+      const expectedResponse = JSON.stringify({message: 'Not found, ensure userId is correct' });
 
       expect(res.status).toBe(404);
       expect(res.text).toBe(expectedResponse);
