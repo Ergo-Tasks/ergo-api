@@ -2,12 +2,11 @@ import supertest from 'supertest';
 import { NextFunction, Request, Response } from "express";
 
 import server from "../../server";
-import createConnection from '../../typeorm';
-import { Connection } from 'typeorm';
 
 import { Tag } from '../../typeorm/entities/Tag';
 import { User, userRelations } from '../../typeorm/entities/User';
-import { createTestUser } from '../../utils';
+
+import { createTestUser, createTypeormConn } from '../../utils';
 
 jest.mock('../../middleware/auth', () => ({
   restricted: (req: Request, res: Response, nextFunction: NextFunction) => {
@@ -16,17 +15,12 @@ jest.mock('../../middleware/auth', () => ({
 }));
 
 const request = supertest(server);
-let connection: Connection;
 
 describe('Tag routes', () => {
 
   beforeAll(async () => {
-    connection = await createConnection();  
+    await createTypeormConn(); 
     dbUser = await createTestUser('Marty.Byrde@hotmail.com');
-  });
-
-  afterAll(async () => {
-    await connection.close();
   });
 
   const tagExample = {
