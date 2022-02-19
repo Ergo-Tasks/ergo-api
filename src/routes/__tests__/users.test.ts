@@ -1,10 +1,9 @@
 import supertest from 'supertest';
 import { NextFunction, Request, Response } from "express";
 
-import createConnection from "../../typeorm";
 import server from "../../server";
 import { User } from "../../typeorm/entities/User";
-import { Connection } from 'typeorm';
+import { createTypeormConn } from '../../utils';
 
 jest.mock('../../middleware/auth', () => ({
   restricted: (req: Request, res: Response, nextFunction: NextFunction) => {
@@ -13,17 +12,12 @@ jest.mock('../../middleware/auth', () => ({
 }));
 
 const request = supertest(server);
-let connection: Connection;
 
 describe('User authentication routes', () => {
 
 
   beforeAll(async () => {
-    connection = await createConnection();  
-  })
-
-  afterAll(async () => {
-    await connection.close();
+    await createTypeormConn(); 
   })
 
   const userExample = {
