@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { createQueryBuilder, getRepository } from 'typeorm';
 import { restricted } from '../middleware/auth';
 import { Tag } from '../typeorm/entities/Tag';
 
@@ -20,26 +21,31 @@ router.post('/:userId', restricted, async (req, res) => {
   try {
 
     const { userId } = req.params;
-    const user = await User.findOneOrFail({id: userId});
+    const user = await User.findOne({id: userId});
     const body: Task = req.body;
     const task = new Task();
-    
-    task.taskName = body.taskName;
-    task.taskDescription = body.taskDescription;
-    task.isRecursive = body.isRecursive;            
-    task.tags = body.tags;
-    task.user = user;
-    
-    if (task.isRecursive && body.recTaskDate) task.recTaskDate = body.recTaskDate;
-    else if (!task.isRecursive && body.taskDate) task.taskDate = body.taskDate; 
-    else res.status(400).json({message: 'Bad Request: Missing date field(s)'});
 
-    await user.save();
-    await task.save();
+    if (user) {
+    
+      task.taskName = body.taskName;
+      task.taskDescription = body.taskDescription;
+      task.isRecursive = body.isRecursive;            
+      task.tags = body.tags;
+      task.user = user;
+      
+      if (task.isRecursive && body.recTaskDate) task.recTaskDate = body.recTaskDate;
+      else if (!task.isRecursive && body.taskDate) task.taskDate = body.taskDate; 
+      else res.status(400).json({ message: 'Bad request, missing date field(s)' });
 
-    res.status(201).send();
+      await user.save();
+      await task.save();
+
+      res.status(201).send();
+    } else {
+      res.status(404).json({ message: 'Not found, ensure userId is correct' })
+    }
   } catch(err) {
-    res.status(400).json({message: 'Bad Request'});
+    res.status(500).json({ message: 'Unexpected error' });
   }
 
 });
@@ -54,25 +60,41 @@ router.post('/:userId', restricted, async (req, res) => {
  */
 router.get('/:userId', restricted, async (req, res) => {
 
-  const { userId } = req.params;
-  //Should we change to OrFail? That way we can just get rid of if(user) throughout routes.
-  const user = await User.findOne({ where: {id: userId}, relations: userRelations });
-  const query = req.query;
-  
-  const filter: Record<string, any> = {};
+  //try {
 
-  if (query) {
-    if (query.tagId) filter.tags = await Tag.findOne({ where: {id: query.tagId} });
-    if (query.taskDate) filter.taskDate = query.taskDate;
-    if (query.taskFinished) filter.taskFinished = query.taskFinished;
-  }
+    const { userId } = req.params;
+    const user = await User.findOne({ where: {id: userId}, relations: userRelations });
+    const query = req.query;
 
-  if (user) {
-    const filteredTasks: Task[] = await Task.find({ where: filter, relations: taskRelations });
-    res.status(200).json(filteredTasks);
-  } else {
-    res.status(404).json({ message: 'Not Found' });
-  }
+    if (user) {
+    
+      const filter: Record<string, any> = {};
+
+      if (query) {
+
+      const filteredTasks = await getRepository(Task)
+        .createQueryBuilder('task')
+        .where('task.tags = :id', { id: query.tagId })
+        .getMany();
+
+        res.status(200).json(filteredTasks)
+    }
+
+      // if (query) {
+      //   if (query.tagId) filter.tags = await Tag.find({ where: {id: query.tagId} });
+      //   if (query.taskDate) filter.taskDate = query.taskDate;
+      //   if (query.taskFinished) filter.taskFinished = query.taskFinished;
+      // }
+
+
+        //const filteredTasks: Task[] = await Task.find({ where: filter, relations: taskRelations });
+        //res.status(200).json(filteredTasks);
+    } else {
+      res.status(404).json({ message: 'Not found, ensure userId is correct' });
+    }
+  // } catch (err) {
+  //   res.status(500).json({ message: 'Unexpected error' });
+  // }
 
 });
 
