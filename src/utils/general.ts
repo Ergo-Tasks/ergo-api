@@ -1,3 +1,4 @@
+import { getConnectionOptions, createConnection } from "typeorm";
 import { Tag } from "../typeorm/entities/Tag";
 import { User } from "../typeorm/entities/User";
 
@@ -16,4 +17,9 @@ export const createTestTag = async (tagName: string = 'defaultTagName') => {
   testTag.tagName = tagName;
   testTag.tagColor = 'Blue'
   return await testTag.save();
+}
+
+export const createTypeormConn = async () => {
+  const connectionOptions = await getConnectionOptions(process.env.NODE_ENV);
+  return createConnection({ ...connectionOptions, name: 'default' });
 }
