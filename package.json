@@ -5,9 +5,9 @@
   "main": "index.ts",
   "scripts": {
     "build": "tsc",
-    "test": "jest --runInBand",
-    "devtest": "jest --watch --runInBand",
-    "devstart": "nodemon --exec ts-node src/index.ts"
+    "test": "NODE_ENV=test jest --runInBand",
+    "devtest": "NODE_ENV=test jest --watch --runInBand --clearCache",
+    "devstart": "NODE_ENV=development nodemon --exec ts-node src/index.ts"
   },
   "repository": {
     "type": "git",
@@ -30,6 +30,7 @@
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "helmet": "^4.6.0",
+    "i": "^0.3.7",
     "jsonwebtoken": "^8.5.1",
     "morgan": "^1.10.0",
     "typeorm": "^0.2.35"
