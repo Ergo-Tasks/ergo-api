@@ -44,8 +44,9 @@ export class Task extends BaseEntity{
   user!: User;
 
   @ManyToMany(() => Tag, {
-    cascade: true
+    cascade: true,
+    eager: true
   })
-  @JoinTable() 
+  @JoinTable()
   tags?: Tag[];
 }
