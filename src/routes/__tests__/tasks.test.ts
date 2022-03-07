@@ -6,6 +6,7 @@ import { Task, taskRelations, DaysOfTheWeek, IDate } from '../../typeorm/entitie
 import { Tag } from '../../typeorm/entities/Tag'
 import { User, userRelations } from '../../typeorm/entities/User';
 import { createTestTag, createTestUser, createTypeormConn } from '../../utils';
+import { createQueryBuilder } from 'typeorm';
 
 jest.mock('../../middleware/auth', () => ({
   restricted: (req: Request, res: Response, nextFunction: NextFunction) => {
@@ -85,7 +86,7 @@ describe('Task routes', () => {
 
   describe('GET /api/tasks/:userId', () => {
 
-    it.skip('Should return status 200 with all user\'s tasks', async () => {
+    it('Should return status 200 with all user\'s tasks', async () => {
       const res = await request.get(`/api/tasks/${dbUser.id}`);
       const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: userRelations});
       const expectedResponse = JSON.stringify(user.tasks);
@@ -96,8 +97,10 @@ describe('Task routes', () => {
 
     it('Should return status 200 with user\'s tasks under one tag', async () => {
       const res = await request.get(`/api/tasks/${dbUser.id}?tagId=${dbTag1.id}`);
-      const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: userRelations });
-      const expectedResponse = JSON.stringify('hello world')
+      // const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: userRelations});
+      // const tasks = await Task.find({ where: { tags: dbTag1, user }, relations: taskRelations })
+      // const expectedResponse = JSON.stringify(tasks)
+      const expectedResponse = JSON.stringify('hello')
       
       expect(res.status).toBe(200);
       expect(res.text).toBe(expectedResponse);

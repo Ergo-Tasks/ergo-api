@@ -1,9 +1,10 @@
 import { Router } from 'express';
-import { createQueryBuilder, getRepository } from 'typeorm';
+import { createQueryBuilder, getConnection, getManager, getRepository, QueryBuilder } from 'typeorm';
 import { restricted } from '../middleware/auth';
 import { Tag } from '../typeorm/entities/Tag';
 
 import { Task, taskRelations } from '../typeorm/entities/Task';
+import { TaskFinished } from '../typeorm/entities/TaskFinished';
 import { User, userRelations } from '../typeorm/entities/User';
 
 
@@ -60,35 +61,32 @@ router.post('/:userId', restricted, async (req, res) => {
  */
 router.get('/:userId', restricted, async (req, res) => {
 
-  //try {
+  // try {
 
     const { userId } = req.params;
     const user = await User.findOne({ where: {id: userId}, relations: userRelations });
     const query = req.query;
 
     if (user) {
-    
-      const filter: Record<string, any> = {};
+      
+      const f = {
+        tags: query.tagId as string[],
+        status: query.taskFinishedId,
+        date: query.date
+      }
 
-      if (query) {
+      // const tasks = {}
+      // if query.tags -> tasks filter by tags
+      // tasks = { tags }
+      // if query.taskFinished -> tasks filter by taskFinished
 
-      const filteredTasks = await getRepository(Task)
-        .createQueryBuilder('task')
-        .where('task.tags = :id', { id: query.tagId })
+      // only works for searching by tags, otherwise fails
+      const tasks:Task[] = await getRepository(Task)
+        .createQueryBuilder('Task')
+        .innerJoinAndSelect('Task.tags', 'Tag', 'Tag.id = :tagId', { tagId: f.tags })
         .getMany();
-
-        res.status(200).json(filteredTasks)
-    }
-
-      // if (query) {
-      //   if (query.tagId) filter.tags = await Tag.find({ where: {id: query.tagId} });
-      //   if (query.taskDate) filter.taskDate = query.taskDate;
-      //   if (query.taskFinished) filter.taskFinished = query.taskFinished;
-      // }
-
-
-        //const filteredTasks: Task[] = await Task.find({ where: filter, relations: taskRelations });
-        //res.status(200).json(filteredTasks);
+        
+        res.status(200).json(tasks);
     } else {
       res.status(404).json({ message: 'Not found, ensure userId is correct' });
     }
