@@ -6,7 +6,7 @@ import { Task, taskRelations, DaysOfTheWeek, IDate } from '../../typeorm/entitie
 import { Tag } from '../../typeorm/entities/Tag'
 import { User, userRelations } from '../../typeorm/entities/User';
 import { createTestTag, createTestUser, createTypeormConn } from '../../utils';
-import { createQueryBuilder } from 'typeorm';
+import { createQueryBuilder, getRepository } from 'typeorm';
 
 jest.mock('../../middleware/auth', () => ({
   restricted: (req: Request, res: Response, nextFunction: NextFunction) => {
@@ -59,8 +59,7 @@ describe('Task routes', () => {
       const task = await Task.findOneOrFail({ where: {taskName: taskExample.taskName, user}, relations: taskRelations });
 
       expect(user.tasks).toContainEqual(task);
-      expect(task.tags).toContainEqual(dbTag1);
-      expect(task.tags).toContainEqual(dbTag2);
+      expect(task.tags).toContainEqual(dbTag1 && dbTag2);
       expect(res.status).toBe(201);
     });
 
@@ -97,11 +96,15 @@ describe('Task routes', () => {
 
     it('Should return status 200 with user\'s tasks under one tag', async () => {
       const res = await request.get(`/api/tasks/${dbUser.id}?tagId=${dbTag1.id}`);
-      // const user = await User.findOneOrFail({ where: {id: dbUser.id}, relations: userRelations});
-      // const tasks = await Task.find({ where: { tags: dbTag1, user }, relations: taskRelations })
-      // const expectedResponse = JSON.stringify(tasks)
-      const expectedResponse = JSON.stringify('hello')
-      
+
+      // only works for searching by tags, otherwise fails
+      const tasks:Task[] = await getRepository(Task)
+      .createQueryBuilder('Task')
+      .innerJoinAndSelect('Task.tags', 'Tag', 'Tag.id = :tagId', { tagId: dbTag1.id })
+      .getMany();
+
+      const expectedResponse = JSON.stringify(tasks)
+
       expect(res.status).toBe(200);
       expect(res.text).toBe(expectedResponse);
     });
