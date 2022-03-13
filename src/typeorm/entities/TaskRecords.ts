@@ -2,15 +2,18 @@ import { Column, Entity, BaseEntity, PrimaryGeneratedColumn, ManyToOne } from "t
 import { Task } from "./Task";
 
 @Entity()
-export class TaskFinished extends BaseEntity{
+export class TaskRecords extends BaseEntity{
   
   @PrimaryGeneratedColumn('uuid')
   id?: string
 
   @Column()
-  completionTimestamp!: number
+  completionTime!: number
+
+  @Column()
+  completion!: boolean
   
-  @ManyToOne(() => Task, task => task.taskFinished)
+  @ManyToOne(() => Task, task => task.taskRecords)
   task?: Task[];
 
 }
