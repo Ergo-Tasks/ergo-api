@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { Connection, createQueryBuilder, getConnection, getManager, getRepository, QueryBuilder } from 'typeorm';
+import { createQueryBuilder, getRepository, QueryBuilder } from 'typeorm';
 import { restricted } from '../middleware/auth';
 import { Tag } from '../typeorm/entities/Tag';
 
@@ -62,7 +62,7 @@ router.post('/:userId', restricted, async (req, res) => {
  */
 router.get('/:userId', restricted, async (req, res) => {
 
-  // try {
+  try {
 
     const { userId } = req.params;
     const user = await User.findOne({ where: {id: userId}, relations: userRelations });
@@ -70,37 +70,27 @@ router.get('/:userId', restricted, async (req, res) => {
 
     if (user) {
       
-      // const tasks:Task[] = await getRepository(Task)
-      // .createQueryBuilder('Task')
-      // .innerJoinAndSelect('Task.tags', 'Tag', 'Tag.id =:tagId', { tagId: query.tagId })
-      // .getMany();
+       let tasks = await getRepository(Task)
+          .createQueryBuilder('task')
+          .leftJoinAndSelect('task.taskFinished', 'taskFinished')
+          .leftJoinAndSelect('task.tags', 'tag')
 
-      //Properly joining and selecting relations, but doesn't recognize tagId from query.
-      const tasks = await Task.find({
-        join: {
-          alias: 'task',
-          leftJoinAndSelect: {
-            TaskRecords: 'task.taskFinished',
-            Tag: 'task.tags'
+        if (query.tagId) {
+          tasks.andWhere('tag.id =:tagId', { tagId: query.tagId });
         }
-        },
-        where: {query}
-      })
-  
-      res.status(200).json(tasks);
-  
-      //temporary fix just to get tests to stop being mald
 
-      // const tasks:Task[] = user.tasks;
-      // res.status(200).json(tasks);
-        
+        if (query.taskFinishedId) {
+          tasks.andWhere('taskFinished.id =:taskFinishedId', { taskFinishedId: query.taskFinishedId });
+        }
+
+        res.status(200).json( await tasks.getMany() );
 
     } else {
       res.status(404).json({ message: 'Not found, ensure userId is correct' });
     }
-  // } catch (err) {
-  //   res.status(500).json({ message: 'Unexpected error' });
-  // }
+  } catch (err) {
+    res.status(500).json({ message: 'Unexpected error' });
+  }
 
 });
 
