@@ -3,7 +3,7 @@ import { Tag } from "./Tag";
 import { Task } from "./Task";
 
 //for task tests, to findOne user where relation: userRelations, an array of 'tasks'
-export const userRelations = ['tasks', 'tasks.taskFinished', 'tasks.tags', 'tags'];
+export const userRelations = ['tasks', 'tasks.taskRecords', 'tasks.tags', 'tags'];
 
 @Entity()
 export class User extends BaseEntity{
