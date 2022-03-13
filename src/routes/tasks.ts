@@ -4,7 +4,7 @@ import { restricted } from '../middleware/auth';
 import { Tag } from '../typeorm/entities/Tag';
 
 import { Task, taskRelations } from '../typeorm/entities/Task';
-import { TaskFinished } from '../typeorm/entities/TaskFinished';
+import { TaskRecords } from '../typeorm/entities/TaskRecords';
 import { User, userRelations } from '../typeorm/entities/User';
 
 
@@ -33,6 +33,7 @@ router.post('/:userId', restricted, async (req, res) => {
       task.isRecursive = body.isRecursive;            
       task.tags = body.tags;
       task.user = user;
+      task.taskRecords = [];
       
       if (task.isRecursive && body.recTaskDate) task.recTaskDate = body.recTaskDate;
       else if (!task.isRecursive && body.taskDate) task.taskDate = body.taskDate; 
@@ -69,25 +70,30 @@ router.get('/:userId', restricted, async (req, res) => {
 
     if (user) {
       
-      const f = {
-        tags: query.tagId as string[],
-        status: query.taskFinishedId,
-        date: query.date
-      }
+      // const tasks:Task[] = await getRepository(Task)
+      // .createQueryBuilder('Task')
+      // .innerJoinAndSelect('Task.tags', 'Tag', 'Tag.id =:tagId', { tagId: query.tagId })
+      // .getMany();
 
-      // only works for searching by tags, otherwise fails
-      if (f.tags) {
-        const tasks:Task[] = await getRepository(Task)
-        .createQueryBuilder('Task')
-        .innerJoinAndSelect('Task.tags', 'Tag', 'Tag.id = :tagId', { tagId: f.tags })
-        .getMany();
-        res.status(200).json(tasks);
-
+      //Properly joining and selecting relations, but doesn't recognize tagId from query.
+      const tasks = await Task.find({
+        join: {
+          alias: 'task',
+          leftJoinAndSelect: {
+            TaskRecords: 'task.taskFinished',
+            Tag: 'task.tags'
+        }
+        },
+        where: {query}
+      })
+  
+      res.status(200).json(tasks);
+  
       //temporary fix just to get tests to stop being mald
-      } else {
-        const tasks:Task[] = user.tasks;
-        res.status(200).json(tasks);
-      }
+
+      // const tasks:Task[] = user.tasks;
+      // res.status(200).json(tasks);
+        
 
     } else {
       res.status(404).json({ message: 'Not found, ensure userId is correct' });
