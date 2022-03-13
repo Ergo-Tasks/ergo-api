@@ -37,7 +37,9 @@ export class Task extends BaseEntity{
   
   //first param sets the type of the entity being related to, second param sets where the relation is pointing to.
   //switch to !:
-  @OneToMany(() => TaskFinished, taskFinished => taskFinished.task)
+  @OneToMany(() => TaskFinished, taskFinished => taskFinished.task, {
+    eager: true
+  })
   taskFinished?: TaskFinished[];
 
   @ManyToOne(() => User, user => user.tasks) 
