@@ -33,7 +33,6 @@ router.post('/:userId', restricted, async (req, res) => {
       task.isRecursive = body.isRecursive;            
       task.tags = body.tags;
       task.user = user;
-      task.taskRecords = [];
       
       if (task.isRecursive && body.recTaskDate) task.recTaskDate = body.recTaskDate;
       else if (!task.isRecursive && body.taskDate) task.taskDate = body.taskDate; 
@@ -72,18 +71,18 @@ router.get('/:userId', restricted, async (req, res) => {
       
        let tasks = await getRepository(Task)
           .createQueryBuilder('task')
-          .leftJoinAndSelect('task.taskFinished', 'taskFinished')
+          .leftJoinAndSelect('task.taskRecords', 'taskRecords')
           .leftJoinAndSelect('task.tags', 'tag')
 
         if (query.tagId) {
           tasks.andWhere('tag.id =:tagId', { tagId: query.tagId });
         }
 
-        if (query.taskFinishedId) {
-          tasks.andWhere('taskFinished.id =:taskFinishedId', { taskFinishedId: query.taskFinishedId });
+        if (query.taskRecordsId) {
+          tasks.andWhere('taskRecords.id =:taskRecordsId', { taskRecordsId: query.taskRecordsId });
         }
 
-        res.status(200).json( await tasks.getMany() );
+        res.status(200).json(await tasks.getMany());
 
     } else {
       res.status(404).json({ message: 'Not found, ensure userId is correct' });
