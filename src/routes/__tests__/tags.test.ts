@@ -2,10 +2,8 @@ import supertest from 'supertest';
 import { NextFunction, Request, Response } from "express";
 
 import server from "../../server";
-
 import { Tag } from '../../typeorm/entities/Tag';
 import { User, userRelations } from '../../typeorm/entities/User';
-
 import { createTestUser, createTypeormConn } from '../../utils';
 
 jest.mock('../../middleware/auth', () => ({

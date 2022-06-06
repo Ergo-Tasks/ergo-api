@@ -1,10 +1,8 @@
 import { Router } from 'express';
-import { createQueryBuilder, getRepository, QueryBuilder } from 'typeorm';
-import { restricted } from '../middleware/auth';
-import { Tag } from '../typeorm/entities/Tag';
+import { getRepository } from 'typeorm';
 
-import { Task, taskRelations } from '../typeorm/entities/Task';
-import { TaskRecords } from '../typeorm/entities/TaskRecords';
+import { restricted } from '../middleware/auth';
+import { Task } from '../typeorm/entities/Task';
 import { User, userRelations } from '../typeorm/entities/User';
 
 
