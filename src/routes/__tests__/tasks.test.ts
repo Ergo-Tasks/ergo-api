@@ -2,11 +2,11 @@ import supertest from 'supertest';
 import { NextFunction, Request, Response } from "express";
 
 import server from "../../server";
-import { Task, taskRelations, DaysOfTheWeek, IDate } from '../../typeorm/entities/Task';
+import { Task, taskRelations, DaysOfTheWeek } from '../../typeorm/entities/Task';
 import { Tag } from '../../typeorm/entities/Tag'
 import { User, userRelations } from '../../typeorm/entities/User';
 import { createTestTag, createTestUser, createTypeormConn } from '../../utils';
-import { createQueryBuilder, getRepository } from 'typeorm';
+import { getRepository } from 'typeorm';
 
 jest.mock('../../middleware/auth', () => ({
   restricted: (req: Request, res: Response, nextFunction: NextFunction) => {
@@ -100,6 +100,7 @@ describe('Task routes', () => {
       // only works for searching by tags, otherwise fails
       const tasks:Task[] = await getRepository(Task)
       .createQueryBuilder('Task')
+      .leftJoinAndSelect('Task.taskRecords', 'TaskRecords')
       .innerJoinAndSelect('Task.tags', 'Tag', 'Tag.id = :tagId', { tagId: dbTag1.id })
       .getMany();
 
@@ -107,10 +108,6 @@ describe('Task routes', () => {
 
       expect(res.status).toBe(200);
       expect(res.text).toBe(expectedResponse);
-    });
-
-    it.skip('Should return status 200 with user\'s completed tasks under one tag', async () => {
-
     });
 
     it.skip('Should return status 200 with all user\'s in-progress tasks', async () => {
