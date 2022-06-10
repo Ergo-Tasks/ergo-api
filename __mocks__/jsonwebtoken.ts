@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken'
 
+import { JsonWebTokenError } from 'jsonwebtoken';
 import { jwtPayload } from '../src/middleware/auth'
 
 type MockToken = 'valid' | 'invalid';
