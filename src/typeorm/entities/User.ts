@@ -1,8 +1,8 @@
-import { Column, Entity, BaseEntity, PrimaryGeneratedColumn, OneToMany, CreateDateColumn, UpdateDateColumn, JoinColumn, JoinTable } from "typeorm";
+import { Column, Entity, BaseEntity, PrimaryGeneratedColumn, OneToMany, CreateDateColumn } from "typeorm";
+
 import { Tag } from "./Tag";
 import { Task } from "./Task";
 
-//for task tests, to findOne user where relation: userRelations, an array of 'tasks'
 export const userRelations = ['tasks', 'tasks.taskRecords', 'tasks.tags', 'tags'];
 
 @Entity()

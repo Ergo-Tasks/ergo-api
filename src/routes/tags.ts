@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { restricted } from '../middleware/auth';
 
+import { restricted } from '../middleware/auth';
 import { User, userRelations } from '../typeorm/entities/User';
 import { Tag } from '../typeorm/entities/Tag';
 

@@ -1,4 +1,5 @@
 import { Column, Entity, BaseEntity, PrimaryGeneratedColumn, ManyToOne, ManyToMany, JoinTable, OneToMany } from "typeorm";
+
 import { Tag } from "./Tag";
 import { User } from "./User"
 import { TaskRecords } from "./TaskRecords";
@@ -35,8 +36,6 @@ export class Task extends BaseEntity{
   @Column({ nullable: true })
   taskDate?: number;
   
-  //first param sets the type of the entity being related to, second param sets where the relation is pointing to.
-  //switch to !:
   @OneToMany(() => TaskRecords, taskRecords => taskRecords.task, {
     eager: true
   })
